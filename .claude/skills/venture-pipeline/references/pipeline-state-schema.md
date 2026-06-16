@@ -103,7 +103,11 @@ pipeline-state.json ← 独占 HG 停等 + 节点推进（层2 新文件）
 | `direction.json` | **仅** shift-direction.js（层1 腿，零改动） |
 | `pipeline-state.json` | pipeline-state.js（init/set-hg/verify）+ advance-node.js（advance 流转，M2） |
 
-**pipeline-state.js 绝对禁止 require 或读写 direction.json**（R1.3 set-hg 命令的核心约束）。direction.json 的 status/gate 永远是 `active/null`，HG 语义从不污染它。
+**pipeline-state.js 绝不写 direction.json**（C1 核心约束）。区分两种命令：
+- **init 命令**：只读 `direction.json.current_version`（填充 `pipeline-state.direction_version` 字段，绑定当前方向版本，为 R2.5 换向监测源）——纯读非写，不改变 direction.json 的语义职责（`current_version` 本就是层1 业务方向指针的合法字段）。
+- **set-hg 命令**：**绝对禁止** require 或读写 direction.json（R1.3 核心约束）。
+
+direction.json 的 status/gate 永远是 `active/null`，HG 语义从不污染它。
 
 ### 4.4 为什么嫁接1 是回归而非绕过
 
