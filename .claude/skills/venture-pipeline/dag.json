@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "description": "M0 最小合法 DAG：3 节点 N1→N2→HG1→N3，含 1 个 awaiting_human edge（HG1 停等）。字位 subgraph/fan_out 不含于此（由 load-graph.test.js 字位测试单独构造 implemented:false fixture 触发 C5 报错）。",
+  "nodes": [
+    {
+      "id": "N1",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N1 产出完成（占位，C7）"
+    },
+    {
+      "id": "N2",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N2 产出完成（占位，C7）"
+    },
+    {
+      "id": "N3",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N3 产出完成（占位，C7）"
+    }
+  ],
+  "edges": [
+    {
+      "from": "N1",
+      "to": "N2",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N2",
+      "to": "N3",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": true
+      }
+    },
+    {
+      "from": "N3",
+      "to": "N3",
+      "condition": {
+        "signal": "red",
+        "awaiting_human": false
+      }
+    }
+  ],
+  "loop_backs": []
+}
