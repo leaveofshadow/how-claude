@@ -35,7 +35,8 @@
       "to": "N3",
       "condition": {
         "signal": "green",
-        "awaiting_human": true
+        "awaiting_human": true,
+        "gate": "HG1"
       }
     },
     {

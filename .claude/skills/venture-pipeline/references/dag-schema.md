@@ -40,10 +40,19 @@ DAG 节点，绑定一个 skill 兑现业务语义。
   "to": "N2",
   "condition": {
     "signal": "green",
-    "awaiting_human": false
+    "awaiting_human": false,
+    "gate": "HG1"
   }
 }
 ```
+
+字段说明（`condition` 对象）：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `signal` | enum | 是 | 流转控制枚举 `green\|yellow\|red\|unknown` |
+| `awaiting_human` | bool | 是 | HG 停等触发（独立于 signal） |
+| `gate` | enum | **条件必填** | HG 闸门编号 `HG1\|HG2`；详见下方「gate 编号来源」 |
 
 #### MINOR 双路径（edge.condition 的两个正交字段）
 
@@ -53,6 +62,18 @@ DAG 节点，绑定一个 skill 兑现业务语义。
 |------|------|------|---------|---------|
 | **路径A 询问态** | `condition.signal` | 枚举 `green\|yellow\|red\|unknown` | signal=unknown → 节点 skill 不确定 → 走 HG 询问 | pipeline-state.status 视询问结果定 |
 | **路径B 停等态** | `condition.awaiting_human` | 布尔 `true\|false`（独立于 signal） | true → pipeline-state.status=`awaiting_human` + gate=HG{n} | pipeline-state.status=`awaiting_human` |
+
+#### gate 编号来源（R2.0 数据驱动裁决，β'）
+
+`gate`（HG1|HG2）来源 = **edge.condition.gate 字段**（数据驱动，不硬编码）。advance-node.js 引擎按下列规则读取：
+
+| edge 形态 | gate 取值 | 引擎动作 |
+|----------|----------|---------|
+| `awaiting_human:true` 的 edge | **必须**声明 `condition.gate` | 缺 gate → advance 报错「awaiting_human edge 缺 gate」+ exit 1 |
+| `signal:unknown` 触发的询问 | `condition.gate \|\| 'HG1'` | fallback 到 HG1（unknown 询问缺 gate 编号时的合理默认） |
+| 纯流转 edge（green/yellow/red + awaiting_human:false） | gate 字段无意义（可省略） | 引擎不读 |
+
+> **β' 数据驱动**：gate 编号从 edge 数据读，而非引擎硬编码。DAG 作者通过 edge.condition.gate 声明该停等走哪个闸门，引擎照做。
 
 **正交性说明**：
 - `signal` 枚举管流转控制（green=自动流转 / yellow=记录警告但流转 / red=停等不流转 / unknown=走 HG 询问）。
