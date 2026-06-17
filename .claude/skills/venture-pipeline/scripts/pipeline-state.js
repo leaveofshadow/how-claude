@@ -32,12 +32,13 @@ const { atomicWriteJSON } = require('../../cc-runtime/scripts/init-state');
 
 // ── CLI 参数解析 ──
 function parseArgs(argv) {
-  const opts = { command: null, dag: null, root: null, gate: null, help: false };
+  const opts = { command: null, dag: null, root: null, gate: null, hccSkill: null, help: false };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--dag') opts.dag = argv[++i] || null;
     else if (a === '--root') opts.root = argv[++i] || null;
     else if (a === '--gate') opts.gate = argv[++i] || null;
+    else if (a === '--hcc-skill') opts.hccSkill = argv[++i] || null;
     else if (a === '--help' || a === '-h') opts.help = true;
     else if (!opts.command && !a.startsWith('--')) opts.command = a;
   }
@@ -88,6 +89,28 @@ function readDirectionVersion(stateRoot) {
   }
 }
 
+// hcc-org/SKILL.md 路径：缺省 <cwd>/.claude/skills/hcc-org/SKILL.md（[B-2/C-4] R2.1）
+function resolveHccSkillPath(arg) {
+  if (arg) return path.resolve(arg);
+  return path.resolve('.claude', 'skills', 'hcc-org', 'SKILL.md');
+}
+
+// 读 hcc-org/SKILL.md frontmatter 的 protocol_version（[B-2/C-4]：cmdInit 据此写入 pipeline-state.protocol_version_read 字段）
+// 纯字符串解析（C2：禁外部 yaml 依赖）——正则提取 frontmatter 内 protocol_version 行。
+// hcc-org 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞层2 引擎）
+function readHccOrgProtocolVersion(skillPath) {
+  try {
+    if (!fs.existsSync(skillPath)) return null;
+    const raw = fs.readFileSync(skillPath, 'utf8');
+    const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm) return null;
+    const pv = fm[1].match(/^protocol_version:\s*["']?([^"'\r\n]+)["']?\s*$/m);
+    return pv ? pv[1].trim() : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 // 读当前 pipeline-state.json（不存在返回 null）
 function readPipelineState(stateRoot) {
   const fp = stateFilePath(stateRoot);
@@ -103,6 +126,7 @@ function cmdInit(opts) {
   const dagObj = readDagObj(dagPath);
   const graphHash = computeGraphHash(dagObj);
   const directionVersion = readDirectionVersion(stateRoot);
+  const hccOrgVersion = readHccOrgProtocolVersion(resolveHccSkillPath(opts.hccSkill)); // [B-2/C-4] R2.1
   const now = new Date().toISOString();
 
   const state = {
@@ -113,6 +137,7 @@ function cmdInit(opts) {
     status: 'active',       // 嫁接1 默认值
     gate: null,             // 嫁接1 默认值
     graph_hash: graphHash,
+    protocol_version_read: hccOrgVersion,  // [B-2/C-4] hcc-org 未装时 null（fallback）
     history: [{
       ts: now,
       action: 'init',

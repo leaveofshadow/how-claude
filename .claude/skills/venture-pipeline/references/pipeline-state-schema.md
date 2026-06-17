@@ -18,7 +18,7 @@
 
 ---
 
-## 二、字段定义（8 字段）
+## 二、字段定义（9 字段）
 
 | 字段 | 类型 | 取值 | 说明 |
 |------|------|------|------|
@@ -29,6 +29,7 @@
 | `status` | enum | `active` \| `awaiting_human` | **独占 HG 停等语义**（嫁接1）；active=引擎可推进 / awaiting_human=HG 停等 boss 决策 |
 | `gate` | enum\|null | `null` \| `HG1` \| `HG2` | 当前停等的 HG 闸门编号；与 status 联动（status=awaiting_human 时 gate≠null） |
 | `graph_hash` | string | 64 位 sha256 hex | dag.json 的确定性哈希（复用 load-graph.computeGraphHash）；verify 子命令比对源（C6 防静默漂移） |
+| `protocol_version_read` | string\|null | hcc-org 协议版本号或 null | [B-2/C-4] 部门激活时记录读到的 hcc-org.protocol_version（cmdInit 读 hcc-org/SKILL.md frontmatter）；hcc-org 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞引擎） |
 | `history` | array | 事件对象数组 | 审计链（每次 init/set-hg/流转追加一条），结构见下 |
 
 ### history 事件结构
@@ -56,6 +57,7 @@
   "status": "active",
   "gate": null,
   "graph_hash": "<dag.json 的 sha256>",
+  "protocol_version_read": null,
   "history": [
     {
       "ts": "<ISO8601>",
@@ -69,6 +71,8 @@
 ```
 
 **direction_version=1 假设**：init 时读 direction.json.current_version 写入（若 direction.json 不存在则 fallback=1）。R2.5 换向监测会比对此字段。
+
+**protocol_version_read=null 假设**：init 默认 null；cmdInit 实际写入时读 hcc-org/SKILL.md frontmatter 的 `protocol_version` 覆盖为版本号（[B-2/C-4] R2.1）。hcc-org 未装则保持 null（fallback，不阻塞层2 引擎）。R2.3 测试断言此字段。
 
 ---
 
@@ -101,7 +105,7 @@ pipeline-state.json ← 独占 HG 停等 + 节点推进（层2 新文件）
 | 文件 | 允许的写者 |
 |------|-----------|
 | `direction.json` | **仅** shift-direction.js（层1 腿，零改动） |
-| `pipeline-state.json` | pipeline-state.js（init/set-hg/verify）+ advance-node.js（advance 流转，M2）+ resolve-hg.js（解除 awaiting_human 并推进越过 edge，M3） |
+| `pipeline-state.json` | pipeline-state.js（init/set-hg/verify；`protocol_version_read` 字段由 cmdInit 写入，[B-2/C-4] R2.1）+ advance-node.js（advance 流转，M2）+ resolve-hg.js（解除 awaiting_human 并推进越过 edge，M3） |
 
 **pipeline-state.js 绝不写 direction.json**（C1 核心约束）。区分两种命令：
 - **init 命令**：只读 `direction.json.current_version`（填充 `pipeline-state.direction_version` 字段，绑定当前方向版本，为 R2.5 换向监测源）——纯读非写，不改变 direction.json 的语义职责（`current_version` 本就是层1 业务方向指针的合法字段）。

@@ -171,11 +171,58 @@ function testC1DirectionUnchanged() {
   }
 }
 
+// ── 测试⑤：protocol_version_read 读 hcc-org frontmatter（[B-2/C-4] R2.3）──
+function testProtocolVersionRead() {
+  console.log('\n[Test 5] protocol_version_read 读 hcc-org frontmatter（[B-2/C-4]）');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // 造 hcc-org/SKILL.md fixture（含 protocol_version frontmatter，无 BOM）
+    const skillFixture = path.join(tmpBase, 'hcc-org-SKILL.md');
+    fs.writeFileSync(skillFixture, [
+      '---',
+      'name: hcc-org',
+      'protocol_version: "D10-2026-06-17"',
+      '---',
+      '# hcc-org fixture',
+      '',
+    ].join('\n'), 'utf8');
+
+    const r = spawnSync('node', [SCRIPT, 'init', '--dag', dagCopy, '--root', stateRoot, '--hcc-skill', skillFixture], { encoding: 'utf8' });
+    assert(r.status === 0, `init exit 0（实际 ${r.status}；stderr=${JSON.stringify(r.stderr)}）`);
+
+    const s = readJSON(path.join(stateRoot, 'pipeline-state.json'));
+    assert(s.protocol_version_read === 'D10-2026-06-17',
+      `protocol_version_read === "D10-2026-06-17"（实际 ${JSON.stringify(s.protocol_version_read)}）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
+// ── 测试⑥：protocol_version_read fallback null（hcc-org 未装，[B-2/C-4] R2.3）──
+function testProtocolVersionReadFallback() {
+  console.log('\n[Test 6] protocol_version_read fallback null（hcc-org 未装，[B-2/C-4]）');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // --hcc-skill 指向不存在路径（模拟 hcc-org 未装）
+    const ghost = path.join(tmpBase, 'not-exist-SKILL.md');
+    const r = spawnSync('node', [SCRIPT, 'init', '--dag', dagCopy, '--root', stateRoot, '--hcc-skill', ghost], { encoding: 'utf8' });
+    assert(r.status === 0, `init exit 0（fallback 不阻塞引擎，实际 ${r.status}）`);
+
+    const s = readJSON(path.join(stateRoot, 'pipeline-state.json'));
+    assert(s.protocol_version_read === null,
+      `protocol_version_read === null（fallback，实际 ${JSON.stringify(s.protocol_version_read)}）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
 // ── 运行 ──
 testInit();
 testSetHg();
 testVerify();
 testC1DirectionUnchanged();
+testProtocolVersionRead();
+testProtocolVersionReadFallback();
 
 console.log(`\n==== ${passed} passing, ${failed} failing ====`);
 process.exit(failed === 0 ? 0 : 1);
