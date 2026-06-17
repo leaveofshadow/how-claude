@@ -74,6 +74,7 @@ function readJSON(fp) {
 function psPath(stateRoot) { return path.join(stateRoot, 'pipeline-state.json'); }
 function checkpointPath(stateRoot) { return path.join(stateRoot, 'checkpoint.json'); }
 function tracePath(stateRoot) { return path.join(stateRoot, 'trace.ndjson'); }
+function tasksTreePath(stateRoot) { return path.join(stateRoot, 'tasks.tree.json'); }
 function dagHash(dagCopy) {
   return computeGraphHash(JSON.parse(fs.readFileSync(dagCopy, 'utf8')));
 }
@@ -185,10 +186,102 @@ function testR42Trace() {
   }
 }
 
+// ── Test 4 R5.1 部门 plan 中间态断点续传（[B-6] 修复）──
+// [B-6] 语义：部门工作（决策部 N3 plan）进行到中间态时——trace 已记录 reasoning、tasks.tree 有 in_progress 任务、
+// checkpoint 锚定 node:N3 iter:2、pipeline-state.current_node=N3——resume 后所有中间态原封保留，不静默丢。
+// venture-resume 是只读恢复 + 追加 resume trace（C1 不碰 tasks.tree/direction.json），故测其「非破坏性」：
+//   闸① exit 0 + message resumed at N3 iter:2（恢复点正确）
+//   闸② trace 末行 = resume 事件（node:N3 action:resume iter:2 direction_version:1）
+//   闸③ trace 中间态 reasoning 行保留（部门 plan 中间态不被 resume 清除）
+//   闸④ tasks.tree.json in_progress 任务保留（resume 不碰 tasks.tree，部门中间态产物不丢）
+function testDepartmentMidStateResume() {
+  console.log('\n[Test 4] R5.1 部门 plan 中间态断点续传：决策部 N3 iter:2 plan 进行中 → resume → 中间态全部保留（trace reasoning + tasks in_progress + node 位置）');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // pipeline-state：current_node=N3（决策部 plan 节点），direction_version=1，graph_hash 匹配
+    writeJSON(psPath(stateRoot), {
+      direction_version: 1,
+      current_node: 'N3',
+      frontier: ['N4'],
+      iteration: 2,
+      status: 'active',
+      gate: null,
+      graph_hash: dagHash(dagCopy),
+      history: [],
+    });
+    // checkpoint：continue_from 锚定 N3 iter:2（决策部 plan 中间态续跑锚点）
+    const cp = readJSON(checkpointPath(stateRoot));
+    cp.continue_from = 'node:N3,task:决策部plan,iter:2';
+    writeJSON(checkpointPath(stateRoot), cp);
+
+    // trace：先追加一行部门 plan reasoning 中间态（resume 前部门工作已产生的中间态记录）
+    fs.appendFileSync(tracePath(stateRoot),
+      JSON.stringify({
+        ts: '2026-06-18T00:00:00.000Z',
+        action: 'reasoning',
+        node: 'N3',
+        iter: 2,
+        step_index: 1,
+        direction_version: 1,
+        tool: 'Think',
+        learnings: ['部门 plan 中间态：方案 α 草拟中'],
+        progressHash: 'mid-state-hash',
+        progress_delta: 5,
+        tokensUsed: 1000,
+      }) + '\n', 'utf8');
+
+    // tasks.tree：塞一个 in_progress 任务（决策部 plan 中间态产物，resume 前已存在）
+    const tasksTree = readJSON(tasksTreePath(stateRoot));
+    tasksTree.tasks.push({
+      id: 'T1',
+      title: '决策部 plan 草拟方案 α',
+      status: 'in_progress',
+      direction_version: 1,
+    });
+    writeJSON(tasksTreePath(stateRoot), tasksTree);
+
+    const r = runResume(stateRoot, dagCopy);
+
+    // 闸① exit 0（恢复成功）
+    assert(r.status === 0, `exit 0（实际 ${r.status}）`);
+    // 闸② message 含 resumed at N3 iter:2
+    let out = null;
+    try { out = JSON.parse(r.stdout); } catch (e) {}
+    assert(out !== null && typeof out.message === 'string' && out.message.includes('resumed at N3 iter:2'),
+      `message 含 "resumed at N3 iter:2"（实际 "${out && out.message}"）`);
+
+    // 闸③ trace 末行 = resume 事件（node:N3 iter:2 direction_version:1）
+    const traceRaw = fs.readFileSync(tracePath(stateRoot), 'utf8').trim();
+    const lines = traceRaw.split(/\r?\n/).filter((l) => l.length > 0);
+    assert(lines.length >= 2, `trace 至少 2 行（reasoning 中间态 + resume），实际 ${lines.length} 行`);
+    let last = null;
+    try { last = JSON.parse(lines[lines.length - 1]); } catch (e) {}
+    assert(last !== null && last.action === 'resume' && last.node === 'N3' && last.iter === 2 && last.direction_version === 1,
+      `trace 末行 resume 事件 node:N3 iter:2 direction_version:1（实际 ${last && last.action}/${last && last.node}/${last && last.iter}/${last && last.direction_version}）`);
+
+    // 闸④ trace 中间态 reasoning 行保留（[B-6] resume 非破坏，不静默丢部门 plan 中间态）
+    const hasMidState = lines.some((l) => {
+      try {
+        const o = JSON.parse(l);
+        return o.action === 'reasoning' && o.node === 'N3' && o.iter === 2;
+      } catch (e) { return false; }
+    });
+    assert(hasMidState, `trace 保留部门 plan 中间态 reasoning 行（N3 iter:2 方案 α 草拟中，[B-6] resume 非破坏）`);
+
+    // 闸⑤ tasks.tree.json in_progress 任务保留（resume 不碰 tasks.tree，部门中间态产物不丢）
+    const tasksAfter = readJSON(tasksTreePath(stateRoot));
+    const hasInProgress = tasksAfter.tasks.some((t) => t.status === 'in_progress');
+    assert(hasInProgress, `tasks.tree.json in_progress 任务保留（resume 不碰 tasks.tree，[B-6] 部门中间态产物不丢）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
 // ── 主入口 ──
 testR41Resume();
 testR41Drift();
 testR42Trace();
+testDepartmentMidStateResume();
 
 console.log(`\n${'='.repeat(60)}`);
 console.log(`venture-resume.test.js：${passed} passed, ${failed} failed`);
