@@ -39,7 +39,7 @@
 │  └─ Workflow + 对抗验证 — N 个怀疑者否决
 │
 ├─ 3+ 个长期并行任务（同时写 3 个功能）
-│  └─ Team 模式 — peer 独立运行
+│  └─ Team 模式 — peer 各自在 worktree 隔离运行（操作见 cc-loop Stage4 worktree SOP）
 │
 └─ 不确定复杂度
    └─ Explore agent 先侦察 → 再决定
@@ -226,7 +226,7 @@ Stage 4: 编排循环
 
 Stage 5: 全自动编排（Gas Town）
   Mayor agent + patrol agents，持续运行
-  → 多个 peer 各自循环，通过 git 状态协调
+  → 多个 peer 各自循环（在隔离 worktree 中），通过 git 状态协调
 ```
 
 ### 编排循环 vs 静态 Workflow
@@ -245,8 +245,8 @@ Stage 5: 全自动编排（Gas Town）
 ```
 AGENTS    → 哪些 agent 可用？各自的能力？
 ROUTING   → 什么情况分派给哪个 agent？
-MERGE     → 多个 agent 的结果如何合并？
-CONFLICT  → agent 之间冲突时怎么解决？
+MERGE     → 多个 agent 的结果如何合并？（worktree 是物理隔离实现：每个 agent 一个独立 worktree/分支，过闸后 merge 回主干）
+CONFLICT  → agent 之间冲突时怎么解决？（跨 worktree 合并冲突走 cc-loop Stage4 worktree SOP 的 CONFLICT 规则：FIFO + rebase + 编排者介入）
 RECOVERY  → agent 失败时的降级策略？
 ```
 
@@ -259,7 +259,7 @@ Auto-fix build issues,
 and when comments come in,
 use a worktree agent to fix them.
 ```
-→ supervisor 循环 + 分派 worktree-isolated sub-agents
+→ supervisor 循环 + 分派 worktree-isolated sub-agents（隔离/合并/冲突/回收走 cc-loop Stage4 worktree SOP）
 
 **代码审查自动化**:
 ```

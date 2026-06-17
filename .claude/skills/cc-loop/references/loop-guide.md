@@ -53,8 +53,40 @@ Claude Code 内置的调度命令：
 
 ### 编排循环（Stage 4-5）
 
-Stage 4：循环监督多个 agent，并行 worktree
+Stage 4：循环监督多个 agent，**并行 worktree**（标准化流程见下）
 Stage 5：Gas Town 式 — Mayor agent + patrol agents，20-30 个 Claude Code 实例持续运行
+
+#### worktree 标准化流程（Stage 4 的实质化）
+
+并发槽位 ≤ 2：同时活跃 worktree ≤ 2。⚠️ 这是"同时工作"上限，**不是创建总数配额**——可以规划 5 个 worktree 任务排队，但同一时刻只有 2 个在跑，其余等槽位释放。
+
+```
+1. 判定开     任务与其他活跃任务无依赖 → 可开 worktree 并行
+              （有依赖 → 串行，等上游 worktree 合并后接力）
+2. 开         git worktree add .wt/{slug} -b feat/{slug}
+              （独立分支，命名 feat/{里程碑或任务slug}；不在主分支动）
+3. 绑定       一个 worktree ←→ 一组 agent + 该里程碑验证闸(60) + 该 worktree 需求项(70)
+              （绑定后，循环知道这个 worktree 该跑哪些需求项、过什么闸）
+4. 并发控制   活跃 worktree ≤ 2；新任务槽位满 → 排队，等回收
+              （BUDGET 的物理约束：超过 2 个并行 = 上下文/资源不可控）
+5. 闸         worktree 内独立跑验证闸（60 的验证闸 + 70 的可证伪验证）
+              过闸才 commit；不过闸 = 该 worktree 不算完成
+6. 合并       过闸 → commit → merge 回主干（或开 PR）
+              跨 worktree 冲突 → 按 CONFLICT 规则处理（见下）
+7. 回收       合并完成 → git worktree remove .wt/{slug} + 删分支
+              槽位释放 → 推进排队中的下一个任务
+8. 监督(循环) Stage 4 循环职责：检查各 worktree 闸状态、活跃数 ≤2、推进排队
+              无进展（某 worktree 连续 K 轮不过闸）→ 触发护栏停止该 worktree
+```
+
+**CONFLICT 规则（跨 worktree 合并冲突）**：
+- 先合并的 worktree 胜出（FIFO）；后合并的负责 rebase 解决冲突
+- 冲突涉及同一文件同一区域 → 编排者介入，不让两个 agent 互相覆盖
+- 解决后重跑该 worktree 验证闸，确认未破坏
+
+**失败恢复（RECOVERY）**：
+- worktree 验证闸连续不过 → git restore 回滚该 worktree 该步，重做（不污染主干）
+- worktree 整体卡死 → 标记 BLOCKED，回收槽位，人介入或降级
 
 ---
 

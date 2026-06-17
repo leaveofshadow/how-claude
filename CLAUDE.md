@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个 Claude Code **技能（Skill）** 项目：`claude-coach` 系列——Claude Code **Loop Engineering** 教练套件。包含 1 个路由器 + 7 个专业子技能，按需加载。
+这是一个 Claude Code **技能（Skill）** 项目：`claude-coach` 系列——Claude Code **Loop Engineering** 教练套件。包含 1 个路由器 + 8 个专业子技能（含设计决策），按需加载。
 
 核心理念：**你不 prompt agent，你设计循环让循环去 prompt agent。**
 
@@ -32,9 +32,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── cc-scanner/                       # 技能知识库 + 循环资产
 │   ├── SKILL.md
 │   └── references/scanner-guide.md       # 含技能作为循环资产
-└── cc-memory/                        # 记忆系统审查教练
-    ├── SKILL.md
-    └── references/memory-review-guide.md # 含循环记忆写回
+├── cc-memory/                        # 记忆系统审查教练
+│   ├── SKILL.md
+│   └── references/memory-review-guide.md # 含循环记忆写回
+└── cc-2pp/                           # 两阶段设计决策（探索→方案→对抗→实施计划）
+    ├── SKILL.md                      # 基础假设 + 双校正 + 一等公民 + 文件存储
+    └── references/2pp-guide.md       # 视角库 + 对抗策略 + Plan 模板
 ```
 
 ## 架构设计
@@ -47,7 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 路由器 + 子技能架构
 
-`claude-coach` 是路由器，根据关键词路由到 7 个子技能之一：
+`claude-coach` 是路由器，根据关键词路由到 8 个子技能之一：
 - `cc-loop` — **Loop Engineering 核心课**（五阶段演进 + 循环合同 + 护栏 + 闭环反馈 + 锚文件）
 - `cc-goal` — **终态条件设计**（五层模型 + supergoal 自评方法 + 预检 + 可粘贴 /goal 输出）
 - `cc-orchestration` — 编排决策（subagent/workflow/team 决策树 + 编排循环）
@@ -55,6 +58,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `cc-context` — 上下文健康（健康检查 + 持久化策略 + 循环上下文管理）
 - `cc-scanner` — 技能知识库（多源扫描 → 推荐 → 技能作为循环资产）
 - `cc-memory` — 记忆审查（5系统 × 3级别 + 循环记忆写回）
+- `cc-2pp` — **两阶段设计决策**（探索 → 多方案 → 对抗验证 → 实施计划 + 技术选型双校正）
 
 每个子技能独立加载，只在触发时消耗上下文。
 

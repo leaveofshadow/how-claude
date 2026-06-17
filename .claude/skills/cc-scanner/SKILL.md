@@ -28,7 +28,7 @@ description: >
 | B: 项目技能 | `Glob: .claude/skills/*/SKILL.md` |
 | C: 官方内置 | 已知清单（13 个，无文件） |
 | D: Skills CLI | `bunx skills ls --json` |
-| E: OMC 插件 | `Glob: ~/.claude/plugins/oh-my-claudecode/skills/*/SKILL.md` |
+| E: OMC 插件 | Read installed_plugins.json 取 `oh-my-claudecode@omc` 的 installPath → Glob `{installPath}/skills/*/SKILL.md` + `{installPath}/agents/*.md`（详见 scanner-guide「来源 E」）|
 | F: 自定义路径 | `settings.json` → `skills.scanPaths` |
 
 **构建结果**:

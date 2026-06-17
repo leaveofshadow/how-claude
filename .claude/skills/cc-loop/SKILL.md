@@ -43,6 +43,23 @@ Stage 5: 全自动编排 (Gas Town)
 
 **关键跃迁**：每升一层，人的角色从"循环内"移到"循环外"。
 
+## Stage 4 worktree 标准化流程（并行编排的物理基础）
+
+并发槽位 ≤ 2：同时活跃 worktree ≤ 2（**非创建总数配额**——可规划多个任务排队，同一时刻只 2 个在跑）。
+
+```
+1. 判定开   任务与其他活跃任务无依赖 → 可开 worktree 并行
+2. 开       git worktree add .wt/{slug} -b feat/{slug}（独立分支）
+3. 绑定     一组 agent + 该里程碑验证闸(60) + 该 worktree 需求项(70)
+4. 并发控制 活跃 worktree ≤ 2；槽位满 → 排队等回收（不是限制创建数）
+5. 闸       worktree 内独立跑验证闸，过闸才 commit
+6. 合并     过闸 → commit → merge 回主干(或开 PR)；冲突按 CONFLICT 规则
+7. 回收     合并完成 → git worktree remove .wt/{slug} + 删分支；槽位释放给排队任务
+8. 监督     循环检查各 worktree 闸状态、活跃数 ≤2、推进排队
+```
+
+> 深度版（绑定/冲突 CONFLICT/失败恢复 RECOVERY 细节）见 [loop-guide.md](references/loop-guide.md)。
+
 ## 循环合同（Loop Contract）
 
 每个严肃的循环都应该回答这 6 个问题：

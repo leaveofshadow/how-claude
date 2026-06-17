@@ -91,12 +91,22 @@ Bash: bunx skills ls --json 2>$null || npx skills ls --json 2>$null
 → 容错: bunx/npx 不可用 → 跳过
 ```
 
-**来源 E: OMC 插件技能**
+**来源 E: OMC 插件（skills + agents）**
+
+⚠️ 路径注意：OMC 装在版本化缓存目录 `cache/omc/oh-my-claudecode/<version>/`，不是 `plugins/oh-my-claudecode/`（旧路径已失效）。必须读 Claude Code 的权威配置拿"当前激活版本"，避免扫到多版本重复或扫错版本。
+
 ```
-Glob: ~/.claude/plugins/oh-my-claudecode/skills/*/SKILL.md
-→ 提取 frontmatter，标记 source: "omc"
-→ 容错: 路径不存在 → 跳过
+Step 1: Read ~/.claude/plugins/installed_plugins.json
+Step 2: 找 key "oh-my-claudecode@omc" → 取 installPath（Claude Code 当前激活版本）
+Step 3: 双路扫描（能力清单更全）:
+  - skills: Glob {installPath}/skills/*/SKILL.md   → ~40 个 skill，   source: "omc"
+  - agents: Glob {installPath}/agents/*.md          → ~19 个 subagent，source: "omc-agent"
+Step 4: Fallback（JSON 解析失败时）:
+  → Glob ~/.claude/plugins/cache/omc/oh-my-claudecode/*/skills/*/SKILL.md，按版本号取最高
+容错: 路径不存在 → 跳过
 ```
+
+agent 条目提取 frontmatter 的 name + description，与 skill 区分标记（source: "omc-agent"），供 cc-orchestration 编排时选用可用 subagent。
 
 **来源 F: 自定义路径**
 ```

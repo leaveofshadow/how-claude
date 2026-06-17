@@ -28,6 +28,7 @@ description: >
 | 上下文太长/compact/clear/记忆丢失/循环中的上下文 | **cc-context** | 健康检查 + 循环上下文 |
 | 审查技能/推荐技能/技能组合/我要做/工作流/技能资产 | **cc-scanner** | 动态扫描 + 推荐 |
 | 审查记忆/记忆太多/记忆混乱/notepad/memory/记忆写回 | **cc-memory** | 5系统 × 3级别 |
+| 2pp/两阶段/复杂设计/重度设计/对抗设计/判官小组/设计决策/技术选型/方案对比 | **cc-2pp** | 两阶段设计决策（探索→方案→对抗→实施计划） |
 | 不知道/不确定/帮我选 | 先问再路由 | 2-3个问题定位 |
 
 ## 交互风格
@@ -47,3 +48,4 @@ description: >
 | cc-context | 上下文健康 | context-health-guide.md |
 | cc-scanner | 技能推荐 + 资产 | scanner-guide.md |
 | cc-memory | 记忆审查 | memory-review-guide.md |
+| cc-2pp | 两阶段设计决策 | 2pp-guide.md |
