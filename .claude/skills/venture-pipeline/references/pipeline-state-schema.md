@@ -101,7 +101,7 @@ pipeline-state.json ← 独占 HG 停等 + 节点推进（层2 新文件）
 | 文件 | 允许的写者 |
 |------|-----------|
 | `direction.json` | **仅** shift-direction.js（层1 腿，零改动） |
-| `pipeline-state.json` | pipeline-state.js（init/set-hg/verify）+ advance-node.js（advance 流转，M2） |
+| `pipeline-state.json` | pipeline-state.js（init/set-hg/verify）+ advance-node.js（advance 流转，M2）+ resolve-hg.js（解除 awaiting_human 并推进越过 edge，M3） |
 
 **pipeline-state.js 绝不写 direction.json**（C1 核心约束）。区分两种命令：
 - **init 命令**：只读 `direction.json.current_version`（填充 `pipeline-state.direction_version` 字段，绑定当前方向版本，为 R2.5 换向监测源）——纯读非写，不改变 direction.json 的语义职责（`current_version` 本就是层1 业务方向指针的合法字段）。
@@ -142,7 +142,7 @@ verify 子命令重算当前 dag.json 的 graph_hash，与 pipeline-state.graph_
 | init | 创建，graph_hash 锚定 dag.json | 无（可能尚未 init-state） |
 | advance 流转 | 更新 current_node/frontier | 无 |
 | HG 触发（set-hg） | status=awaiting_human, gate=HG{n} | **无（C1 核心约束）** |
-| boss HG 决策后换向 | （不变，HG 解除由 resolve 或 advance） | direction.set 升版本（层1 腿） |
+| boss HG 决策后换向 | resolve-hg.js 解除 awaiting_human 并推进越过 edge（current_node 前进、status 回 active、gate 清 null） | direction.set 升版本（层1 腿） |
 | 换向后 | R2.5 监测 direction_version 变化 → 重置 current_node/frontier/iteration | current_version++ |
 
 **关键**：换向（direction.set）与 HG 决策是两个独立动作。换向改 direction.json；HG 决策改 pipeline-state.json。引擎不混淆两者。
