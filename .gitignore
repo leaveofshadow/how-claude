@@ -5,3 +5,7 @@
 .omc/
 .remember/
 .venture/
+.claude/compact-snapshots/
+.venv/
+.venv-perf/
+.verify/
