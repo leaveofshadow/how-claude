@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "description": "M5 R5.1 占位拓扑：层3 8 节点 DAG（N1→N2→N3→HG1→N4→HG2→N5→N6⇄N7→N8）占位版。节点 skill 全 placeholder（C7：占位拓扑跑通≠业务跑通）。HG 折叠为 edge（β'嫁接融合体）：HG1=N3→N4、HG2=N4→N5 两处 awaiting_human。N6⇄N7 互锁收敛（loop_back N7→N6 max_iter=3），收敛后取 N7→N8 出口推进（A 方案：loop_back=有限循环，达上限改走出口）。",
+  "nodes": [
+    {
+      "id": "N1",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N1 启动完成（占位，C7）"
+    },
+    {
+      "id": "N2",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N2 机会识别完成（占位，C7）"
+    },
+    {
+      "id": "N3",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N3 方案产出完成（占位，C7）"
+    },
+    {
+      "id": "N4",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N4 原型产出完成（占位，C7）"
+    },
+    {
+      "id": "N5",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N5 验证完成（占位，C7）"
+    },
+    {
+      "id": "N6",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N6 产品化完成（占位，C7）"
+    },
+    {
+      "id": "N7",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N7 迭代优化完成（占位，C7）"
+    },
+    {
+      "id": "N8",
+      "type": "task",
+      "skill": "placeholder",
+      "exit_condition": "N8 规模化完成（占位，C7）"
+    }
+  ],
+  "edges": [
+    {
+      "from": "N1",
+      "to": "N2",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N2",
+      "to": "N3",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N3",
+      "to": "N4",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": true,
+        "gate": "HG1"
+      }
+    },
+    {
+      "from": "N4",
+      "to": "N5",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": true,
+        "gate": "HG2"
+      }
+    },
+    {
+      "from": "N5",
+      "to": "N6",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N6",
+      "to": "N7",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N7",
+      "to": "N6",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N7",
+      "to": "N8",
+      "condition": {
+        "signal": "green",
+        "awaiting_human": false
+      }
+    }
+  ],
+  "loop_backs": [
+    {
+      "from": "N7",
+      "to": "N6",
+      "max_iter": 3,
+      "converge_field": "signal"
+    }
+  ]
+}

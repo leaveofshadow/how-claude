@@ -351,6 +351,60 @@ function testR25Shift() {
   }
 }
 
+// ── 测试⑨ R5.2 A方案 loop_back 收敛后继续：N6⇄N7→N8，收敛后取出口推进到 N8 ──
+// 旧引擎（M2）收敛后停在 fromNode=N7 死锁，到不了 N8；A方案（M5 boss 裁决）取首条非 loop_back
+// out-edge（出口 N7→N8）推进，满足 R5.2「收敛后→N8」原意。向后兼容见测试⑤（无出口→fallback）。
+function testR52ConvergedExit() {
+  console.log('\n[Test 9] R5.2 A方案：N6⇄N7 互锁收敛后取出口 N7→N8 推进（不卡死在 N7）');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // 拓扑：N6 → N7，N7 outEdges=[N7→N6(loop_back 互锁), N7→N8(收敛出口)]，loop_back{N7→N6,max_iter:3}
+    // 关键：N7→N6 声明在前（outEdges[0]，主流程回环），N7→N8 声明在后（收敛后取首条非 loop_back 出口）
+    const dagObj = {
+      version: 1,
+      nodes: [
+        { id: 'N6', type: 'task', skill: 'placeholder', exit_condition: 'N6（占位）' },
+        { id: 'N7', type: 'task', skill: 'placeholder', exit_condition: 'N7（占位）' },
+        { id: 'N8', type: 'task', skill: 'placeholder', exit_condition: 'N8（占位·收敛出口）' },
+      ],
+      edges: [
+        { from: 'N6', to: 'N7', condition: { signal: 'green', awaiting_human: false } },
+        { from: 'N7', to: 'N6', condition: { signal: 'green', awaiting_human: false } },
+        { from: 'N7', to: 'N8', condition: { signal: 'green', awaiting_human: false } },
+      ],
+      loop_backs: [
+        { from: 'N7', to: 'N6', max_iter: 3, converge_field: 'signal' },
+      ],
+    };
+    writeJSON(dagCopy, dagObj);
+
+    spawnSync('node', [PIPELINE_STATE, 'init', '--dag', dagCopy, '--root', stateRoot], { encoding: 'utf8' });
+    runAdvance(stateRoot, dagCopy);  // enter N6（current_node=N6, iteration=0）
+
+    // 序列：N6→N7(iter0)→N7→N6(iter1)→N6→N7(iter1)→N7→N6(iter2)→N6→N7(iter2)→N7→N6(iter3=converged→取出口N7→N8)
+    // 第6次推进（N7→N6 iter3）触发 converged，A方案取 N7→N8 推进，current_node=N8, iteration=3
+    let reached = false;
+    for (let i = 0; i < 10; i++) {
+      const r = runAdvance(stateRoot, dagCopy);
+      assert(r.status === 0, `advance 循环 ${i + 1} exit 0（实际 ${r.status}）`);
+      const s = readJSON(psPath(stateRoot));
+      if (s.current_node === 'N8') {
+        assert(s.iteration === 3, `A方案收敛后到 N8，iteration=3（实际 ${s.iteration}）`);
+        const rObj = JSON.parse(r.stdout);
+        assert(rObj.action === 'converged_exit', `返回 action=converged_exit（实际 ${rObj.action}）`);
+        const last = s.history[s.history.length - 1];
+        assert(/converged:max_iter reached/.test(last.reason),
+          `history reason 含 converged:max_iter reached（实际 ${JSON.stringify(last.reason)}）`);
+        reached = true;
+        break;
+      }
+    }
+    assert(reached, `10 次 advance 内未推进到 N8（旧引擎收敛停 N7 死锁，A方案未生效）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
 // ── 运行 ──
 testR21Flow();
 testR22Red();
@@ -360,6 +414,7 @@ testR23LoopBack();
 testR24HG();
 testR24C1Direction();
 testR25Shift();
+testR52ConvergedExit();
 
 console.log(`\n==== ${passed} passing, ${failed} failing ====`);
 process.exit(failed === 0 ? 0 : 1);

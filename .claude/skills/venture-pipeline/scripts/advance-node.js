@@ -375,7 +375,107 @@ function cmdAdvance(opts) {
   const lb = handleLoopBack(edge, loopBacks, state.iteration);
 
   if (lb.converged) {
-    // 达 max_iter：不回环，current_node 停在收敛态（edge.to 不推进）
+    // A方案（M5 R5.2 裁决）：达 max_iter 后不再回环，改走 fromNode「首条非 loop_back out-edge」（出口）。
+    // 语义：loop_back=有限循环，达上限后继续往下（取出口推进），满足「收敛后→N8」原意。
+    // 向后兼容：fromNode 无出口（仅此 loop_back edge）→ fallback 停 fromNode（M2 测试⑤ 旧行为）。
+    const exitEdge = outEdges.find((e) => !loopBacks.some((l) => l.from === e.from && l.to === e.to));
+    // exitEdge 自动排除当前触发的 loop_back edge（它是 loop_back）；找到则是有出口
+
+    if (exitEdge) {
+      // 收敛后出口路径：先判 awaiting_human（HG 停等路径），再判 signal（evaluateEdge）
+      const exitAwaiting = exitEdge.condition && exitEdge.condition.awaiting_human === true;
+      const exitEv = evaluateEdge(exitEdge);
+
+      if (exitAwaiting || exitEv.askHG) {
+        // 出口是 HG 停等 edge（awaiting_human:true 或 signal:unknown）→ 触发 HG（不推进，保持停等语义）
+        // C1：triggerHG 仅写 pipeline-state.json，绝不碰 direction.json
+        triggerHG(exitEv.gate, `${lb.reason}；收敛后出口 ${exitEdge.from}→${exitEdge.to} 触发 HG${exitEv.gate}`, stateRoot, fromSnapshot);
+        state = readPipelineState(stateRoot);
+        const nowHG = new Date().toISOString();
+        state = Object.assign({}, state, {
+          iteration: lb.newIter,
+          history: (Array.isArray(state.history) ? state.history : []).concat([{
+            ts: nowHG,
+            action: 'advance',
+            from: fromSnapshot,
+            to: { current_node: state.current_node, status: state.status, gate: state.gate, iteration: lb.newIter },
+            reason: `${lb.reason}；收敛后出口 ${exitEdge.from}→${exitEdge.to} 停等 HG${exitEv.gate}`,
+          }]),
+        });
+        atomicWriteJSON(stateFilePath(stateRoot), state);
+        return {
+          ok: true,
+          command: 'advance',
+          action: 'converged_exit_awaiting',
+          reason: lb.reason,
+          gate: exitEv.gate,
+          at: exitEdge.from,
+          iteration: lb.newIter,
+          message: `${lb.reason}，收敛后出口 ${exitEdge.from}→${exitEdge.to} 触发 HG${exitEv.gate}（停等 boss 决策）`,
+        };
+      }
+
+      if (exitEv.blocked) {
+        // 出口 signal=red：不推进，停 fromNode（收敛后出口阻塞，保持收敛态）
+        const nowBlk = new Date().toISOString();
+        state = Object.assign({}, state, {
+          iteration: lb.newIter,
+          history: (Array.isArray(state.history) ? state.history : []).concat([{
+            ts: nowBlk,
+            action: 'advance',
+            from: fromSnapshot,
+            to: { current_node: fromNode, status: 'active', gate: null, iteration: lb.newIter },
+            reason: `${lb.reason}；收敛后出口 ${exitEdge.from}→${exitEdge.to} signal=red 阻塞`,
+          }]),
+        });
+        atomicWriteJSON(stateFilePath(stateRoot), state);
+        return {
+          ok: true,
+          command: 'advance',
+          action: 'converged_exit_blocked',
+          reason: `${lb.reason}；出口 signal=red 阻塞`,
+          at: fromNode,
+          iteration: lb.newIter,
+          message: `${lb.reason}，收敛后出口 signal=red 阻塞（停在 ${fromNode}）`,
+        };
+      }
+
+      // 出口 green/yellow：推进到出口 toNode（loop_back 有限循环达上限后继续往下）
+      const toNode = exitEdge.to;
+      const newFrontier = findOutEdges(edges, toNode).map((e) => e.to);
+      const now = new Date().toISOString();
+      const reasonParts = [`${lb.reason}；收敛后改走出口 ${exitEdge.from}→${toNode}`];
+      if (exitEv.warn) reasonParts.push('warning:signal=yellow');
+      state = Object.assign({}, state, {
+        current_node: toNode,
+        frontier: newFrontier,
+        iteration: lb.newIter,
+        status: 'active',
+        gate: null,
+        history: (Array.isArray(state.history) ? state.history : []).concat([{
+          ts: now,
+          action: 'advance',
+          from: fromSnapshot,
+          to: { current_node: toNode, status: 'active', gate: null, iteration: lb.newIter },
+          reason: reasonParts.join('；'),
+        }]),
+      });
+      atomicWriteJSON(stateFilePath(stateRoot), state);
+      return {
+        ok: true,
+        command: 'advance',
+        action: 'converged_exit',
+        from: exitEdge.from,
+        to: toNode,
+        iteration: lb.newIter,
+        frontier: newFrontier,
+        warn: exitEv.warn,
+        reason: lb.reason,
+        message: `${lb.reason}，收敛后推进 ${exitEdge.from}→${toNode}${exitEv.warn ? '（含 yellow 警告）' : ''}`,
+      };
+    }
+
+    // fallback：fromNode 无出口（仅 loop_back），停 fromNode（M2 旧行为，向后兼容测试⑤）
     const now = new Date().toISOString();
     state = Object.assign({}, state, {
       iteration: lb.newIter,
@@ -384,7 +484,7 @@ function cmdAdvance(opts) {
         action: 'advance',
         from: fromSnapshot,
         to: { current_node: fromNode, status: 'active', gate: null, iteration: lb.newIter },
-        reason: lb.reason,  // 'converged:max_iter reached...'
+        reason: lb.reason,
       }]),
     });
     atomicWriteJSON(stateFilePath(stateRoot), state);
@@ -395,7 +495,7 @@ function cmdAdvance(opts) {
       reason: lb.reason,
       at: fromNode,
       iteration: lb.newIter,
-      message: `${lb.reason}（current_node 停在 ${fromNode}，不再回环）`,
+      message: `${lb.reason}（current_node 停在 ${fromNode}，无出口收敛）`,
     };
   }
 
