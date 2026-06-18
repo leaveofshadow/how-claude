@@ -240,6 +240,124 @@ function cmdSetSignal(opts) {
   };
 }
 
+// ── orchestrate 辅助：正则转义 ──
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 从 exit_condition 提取入口命令（"skill /entry" 模式；skill 前缀限定，排除 .venture/artifacts 路径里的 /）
+// N1: exit_condition 含 "venture-judge /judge 阶段一" → /judge；N2: → /compete；N3(hcc-decision 无 / 入口) → null
+function extractEntry(skill, exitCondition) {
+  if (typeof skill !== 'string' || typeof exitCondition !== 'string') return null;
+  const re = new RegExp(escapeRegex(skill) + '\\s+/([a-z][a-z0-9_-]*)', 'i');
+  const m = exitCondition.match(re);
+  return m ? '/' + m[1] : null;
+}
+
+// 从 exit_condition 提取 artifact 路径（.venture/artifacts/xxx.md，set-signal --artifact 用）
+function extractArtifact(exitCondition) {
+  if (typeof exitCondition !== 'string') return null;
+  const m = exitCondition.match(/\.venture[\\/]artifacts[\\/][^\s）)]+\.md/i);
+  return m ? m[0] : null;
+}
+
+// ── orchestrate 主流程（M2 R2.1-R2.2）──
+// 语义（决策 A + v2-R4）：纯读侧，读 state.current_node + dag.node 拼 markdown 指令卡输出 stdout。
+// 不写文件（纯提示），不 spawn skill（C2），跳过 hash 比对（orchestrate 是提示不是续传，不拒绝漂移态——R2.1 验证5）。
+// [v2-R4] 强制提示当前节点下一步命令（普通段出边→set-signal+advance；HG 出边→resolve-hg），逐字含 --edge/--artifact/--dag，让 agent 复制粘贴即可执行。
+function cmdOrchestrate(opts) {
+  const stateRoot = resolveStateRoot(opts.root);
+  const dagPath = resolveDagPath(opts.dag);
+
+  // 读 state.current_node（R2.1 验证5：跳过 hash 比对，orchestrate 不拒绝漂移态——与 cmdResume L130-134 不同，不调 computeGraphHash）
+  const state = readPipelineState(stateRoot);
+  const currentNode = state.current_node;
+  if (!currentNode) {
+    throw new Error(`pipeline-state.current_node 为 null，无可编排节点（请先 advance 进入起点）`);
+  }
+
+  const dagObj = readDagObj(dagPath);
+  const node = dagObj.nodes.find((n) => n.id === currentNode);
+  if (!node) {
+    throw new Error(`dag 无节点 ${currentNode}（current_node 与 dag 不一致）`);
+  }
+
+  // R2.2：占位节点分支（skill=placeholder → 占位提示，不输出激活指令）
+  if (node.skill === 'placeholder') {
+    return {
+      ok: true,
+      command: 'orchestrate',
+      node: currentNode,
+      placeholder: true,
+      card: `# 当前节点：${currentNode}（占位）\n\n该节点为占位，最小闭环验证到此为止，N4-N8 + HG2 待层3 后续装配。\n`,
+    };
+  }
+
+  // 找出边 + 判定类型（普通段 awaiting_human=false / HG edge awaiting_human=true）
+  const outEdges = Array.isArray(dagObj.edges) ? dagObj.edges.filter((e) => e.from === currentNode) : [];
+  const normalEdge = outEdges.find((e) => e.condition && e.condition.awaiting_human === false) || null;
+  const hgEdge = outEdges.find((e) => e.condition && e.condition.awaiting_human === true) || null;
+
+  // 提取入口命令 + artifact 路径（从 exit_condition，skill 前缀限定排除路径）
+  const entry = extractEntry(node.skill, node.exit_condition);
+  const artifact = extractArtifact(node.exit_condition);
+
+  // 拼 markdown 指令卡
+  const lines = [];
+  lines.push(`# 当前节点：${currentNode}`);
+  lines.push('');
+  lines.push(`## 该激活的 skill`);
+  lines.push(`- skill: ${node.skill}`);
+  lines.push(`- 入口: ${entry || '(无 slash 入口，' + node.skill + ' 直接执行)'}`);
+  lines.push('');
+  lines.push(`## 完成判据（exit_condition，引擎不校验，由你/boss 对照）`);
+  lines.push(`- ${node.exit_condition}`);
+  lines.push('');
+  lines.push(`## 完成后你必须做（缝合闭环，强制，不准跳）`);
+  if (normalEdge) {
+    const edgeStr = `${normalEdge.from}:${normalEdge.to}`;
+    const artifactArg = artifact ? ` --artifact ${artifact}` : '';
+    lines.push(`1. node venture-resume.js set-signal --edge ${edgeStr} --signal green${artifactArg} --dag ${dagPath}`);
+    lines.push(`2. node advance-node.js advance --dag ${dagPath}`);
+    lines.push(`3. node venture-resume.js orchestrate --dag ${dagPath}（看下一个节点指令）`);
+    lines.push('');
+    lines.push(`⚠️ 不准跳过 set-signal 直接 advance（否则 signal 留 unknown → advance 触发 HG 停等卡死）`);
+  } else if (hgEdge) {
+    lines.push(`1. （boss 闸）复核本节点 artifact 质量 → node resolve-hg.js resolve --gate ${hgEdge.condition.gate} --dag ${dagPath}`);
+    lines.push(`2. node venture-resume.js orchestrate --dag ${dagPath}（看 HG 越闸后下一节点指令）`);
+    lines.push('');
+    lines.push(`⚠️ HG edge 的 signal 是死字段（不靠 set-signal），越闸靠 resolve-hg（advance-node.js:294 awaiting_human 优先于 :325 signal）`);
+  } else {
+    lines.push(`（当前节点无出边，为终点）`);
+  }
+  lines.push('');
+  lines.push(`## 当前状态`);
+  lines.push(`- current_node: ${currentNode}`);
+  lines.push(`- status: ${state.status || '(未知)'}`);
+  if (outEdges.length > 0) {
+    lines.push(`- 出边:`);
+    for (const e of outEdges) {
+      const c = e.condition || {};
+      const sig = c.signal || '?';
+      const ah = c.awaiting_human ? 'true' : 'false';
+      const gatePart = c.gate ? `, gate=${c.gate}` : '';
+      const kind = c.awaiting_human ? 'HG edge（signal 死字段，靠 resolve-hg 越闸）' : '普通段（signal 驱动 advance）';
+      lines.push(`  - ${e.from}→${e.to} (signal=${sig}, awaiting_human=${ah}${gatePart})  ← ${kind}`);
+    }
+  }
+  const card = lines.join('\n') + '\n';
+
+  return {
+    ok: true,
+    command: 'orchestrate',
+    node: currentNode,
+    skill: node.skill,
+    entry: entry,
+    out_edges: outEdges.map((e) => ({ from: e.from, to: e.to, kind: (e.condition && e.condition.awaiting_human) ? 'HG' : 'normal' })),
+    card: card,
+  };
+}
+
 // ── CLI 入口 ──
 if (require.main === module) {
   const opts = parseArgs(process.argv);
@@ -248,6 +366,7 @@ if (require.main === module) {
       '用法：',
       '  node venture-resume.js resume [--dag <path>] [--root <dir>]',
       '  node venture-resume.js set-signal --edge <from:to> --signal <green|yellow|red|unknown> --artifact <path> [--dag <path>] [--root <dir>]',
+      '  node venture-resume.js orchestrate [--dag <path>] [--root <dir>]',
       '',
     ].join('\n'));
     process.exit(opts.help ? 0 : 2);
@@ -258,10 +377,16 @@ if (require.main === module) {
     switch (opts.command) {
       case 'resume':  result = cmdResume(opts); break;
       case 'set-signal':  result = cmdSetSignal(opts); break;
+      case 'orchestrate':  result = cmdOrchestrate(opts); break;
       default:
-        throw new Error(`未知子命令：${opts.command}（可用：resume / set-signal）`);
+        throw new Error(`未知子命令：${opts.command}（可用：resume / set-signal / orchestrate）`);
     }
-    process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+    // orchestrate 输出纯 markdown 指令卡（给人/agent 读，非结构化 JSON）；其他子命令输出 JSON
+    if (opts.command === 'orchestrate') {
+      process.stdout.write(result.card.endsWith('\n') ? result.card : result.card + '\n');
+    } else {
+      process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+    }
     process.exit(0);
   } catch (e) {
     process.stderr.write(`错误：${e.message}\n`);
@@ -273,6 +398,9 @@ module.exports = {
   parseArgs,
   cmdResume,
   cmdSetSignal,
+  cmdOrchestrate,
+  extractEntry,
+  extractArtifact,
   parseContinueFrom,
   appendResumeTrace,
 };
