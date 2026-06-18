@@ -10,6 +10,10 @@ trigger:
   - resolve-hg
   - DAG 推进
   - HG 停等
+  - cc-venture
+  - 层3 行动协议
+  - orchestrate
+  - set-signal
 ---
 
 # venture-pipeline（层2 工作流引擎）
@@ -171,6 +175,58 @@ dag.json            ← 数据驱动拓扑（三原语，换 DAG 不改引擎代
 字位预留：subgraph / fan_out（reserved:true, implemented:false，load-graph 遇即报未实现，C5）。
 
 双文件协同（嫁接1）：direction.json 永远 active/null（业务方向）；pipeline-state.json 独占 awaiting_human/gate（引擎推进）。两者写者隔离（C1）：direction.json 仅 shift-direction.js 可写；pipeline-state.json 由 pipeline-state.js + advance-node.js + resolve-hg.js 写。
+
+## cc-venture 行动协议（层3 强制，R4 流程护栏）
+
+> layer-3 cc-venture 业务 DAG（`dag.venture.json`，8 节点 N1→N2→N3─HG1─→N4─HG2─→N5→N6⇄N7→N8）的执行约定：用上面 layer-2 命令面板的 `venture-resume.js` / `advance-node.js` 跑业务主线。本节是 [v2-R4] fail-safe 流程护栏——强制 4 步，防 agent 跳 set-signal 导致主线卡死。
+
+### 行动协议（强制，不准跳）
+
+每个节点的执行循环必须严格按以下 4 步，**不准跳过任何一步**：
+
+1. **读指令**
+   ```bash
+   node .claude/skills/venture-pipeline/scripts/venture-resume.js orchestrate \
+     --dag .claude/skills/venture-pipeline/dag.venture.json --root .venture/state
+   ```
+   → 看 stdout 指令卡的「该激活的 skill / 完成判据 / 完成后你必须做（逐字 set-signal + advance 命令）」。
+
+2. **执行 skill**：照指令卡激活 skill（venture-judge `/judge` / `/compete`，hcc-decision 七维评分等），产出 artifact 到 `.venture/artifacts/<node>-*.md`（须含 dag 该节点 exit_condition 关键词，可证伪）。
+
+3. **set-signal**（普通段 edge 唯一写者）
+   ```bash
+   node .claude/skills/venture-pipeline/scripts/venture-resume.js set-signal \
+     --edge <from>:<to> --signal green \
+     --artifact .venture/artifacts/<node>-*.md \
+     --dag .claude/skills/venture-pipeline/dag.venture.json --root .venture/state
+   ```
+   ↑ `--artifact` 必填，文件不存在 → exit 1（R5 防零产出骗验收）。**这一步不准跳**。
+
+4. **advance**
+   ```bash
+   node .claude/skills/venture-pipeline/scripts/advance-node.js advance \
+     --dag .claude/skills/venture-pipeline/dag.venture.json --root .venture/state
+   ```
+   → 推进到下一节点，回到第 1 步读下一个节点的指令卡。
+
+⚠️ **漏第 3 步直接 advance → 普通段 signal 留 unknown → advance 触发 ask_hg 停等卡死（无自动恢复）**。普通段 edge（N1→N2 / N2→N3 / N5→N6 / N6→N7 / N7→N6 / N7→N8）signal 初值=unknown，advance-node.js 遇 unknown 走 HG 询问分支（line 325），主线推不动。解卡唯一方式：补跑 set-signal 改 green，再 advance。
+
+### HG 越闸（不准 set-signal，R3 死字段）
+
+HG edge（N3→N4 gate=HG1 / N4→N5 gate=HG2，`awaiting_human:true`）的 signal 是**死字段**——advance 命中 awaiting_human 先于 signal 评估（advance-node.js line 294），set-signal 改 HG edge → exit 1（拒改死字段）。agent 到 HG 节点自动停等（status:awaiting_human）→ 报告 boss → 等 boss 决策后调 resolve-hg 越闸，**不准自己跳**：
+
+```bash
+node .claude/skills/venture-pipeline/scripts/resolve-hg.js resolve \
+  --gate HG1|HG2 --dag .claude/skills/venture-pipeline/dag.venture.json --root .venture/state
+```
+
+### set-signal 串行约束（R6）
+
+⚠️ set-signal 是 **read-modify-write**（读 dag → 改普通段 edge.signal → 重算 graph_hash → 改 state.graph_hash → 写双文件），**必须串行调用**（同 dag 同 root 不可并行）。7×24 单机串行场景下无实际并发；真冲突由 graph_hash 漂移检测暴露（resume/verify 报错，C6）。
+
+### orchestrate 输出强制提示
+
+orchestrate 指令卡的「完成后你必须做」段必须**逐字列出当前节点的 set-signal + advance 命令**（含具体 `--edge from:to` / `--artifact 路径` / `--dag 路径`），让 agent 复制粘贴即可执行，不留「agent 自己想命令」的歧义空间。实现见 venture-resume.js cmdOrchestrate（M2，R2.1-验证2 测试覆盖逐字命令断言）。
 
 ## 当前状态
 
