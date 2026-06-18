@@ -20,13 +20,20 @@ New-Item -ItemType Directory -Force "$sandbox\.venture\artifacts" | Out-Null
 $srcBase = 'E:\work\person\vibe_coding\skills\how-claude\.claude\skills'
 $projectSkills = @('venture-pipeline', 'hcc-decision', 'hcc-sales', 'hcc-org', 'cc-runtime')
 foreach ($s in $projectSkills) {
-  Copy-Item -Recurse -Force "$srcBase\$s" "$sandbox\.claude\skills\$s"
+  # 幂等修复：先删目标再复制——PowerShell 5.1 Copy-Item -Recurse 在目标已存在时
+  # 会把源嵌套成子目录（venture-pipeline\venture-pipeline）而非覆盖内容，旧文件残留
+  $dst = "$sandbox\.claude\skills\$s"
+  if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
+  Copy-Item -Recurse -Force "$srcBase\$s" $dst
 }
 
 # 3. venture-judge 从用户级复制（开发源码仓无此 skill；决策 D 项目级+用户级双防线）
 $ventureJudgeSrc = 'C:\Users\newuser\.claude\skills\venture-judge'
+# 同 #2 幂等修复：先删目标再复制，防嵌套
+$ventureJudgeDst = "$sandbox\.claude\skills\venture-judge"
+if (Test-Path $ventureJudgeDst) { Remove-Item $ventureJudgeDst -Recurse -Force }
 if (Test-Path $ventureJudgeSrc) {
-  Copy-Item -Recurse -Force $ventureJudgeSrc "$sandbox\.claude\skills\venture-judge"
+  Copy-Item -Recurse -Force $ventureJudgeSrc $ventureJudgeDst
 } else {
   Write-Warning "用户级 venture-judge 不存在（$ventureJudgeSrc）—— /judge 将靠 fallback；项目级无此 skill。"
 }
