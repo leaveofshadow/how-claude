@@ -147,14 +147,16 @@ function testArtifactNotExist() {
   } finally { cleanup(tmpBase); }
 }
 
-// ── Test 6 [R3] 改 HG edge N3:N4 → exit 1（死字段拒绝）──
+// ── Test 6 [R3] 改 HG edge N3.5:N4 → exit 1（死字段拒绝）──
+// M1 拓扑变更（修复 #6 延伸）：HG1 edge 从 N3:N4 移到 N3.5:N4（N3→N4 删除，拆为 N3→N3.5 普通段 + N3.5→N4 HG）。
+// R3 死字段拒绝测试跟随拓扑改测 N3.5:N4（HG1 当前所在 edge；旧 N3:N4 已不存在 → set-signal 报"edge 不存在"非"死字段"）。
 function testHGEdgeRejected() {
-  console.log('\n[Test 6] R3 改 HG edge N3:N4（awaiting_human:true）→ exit 1 + stderr 含 "死字段"（signal 死字段，set-signal 只改普通段）');
+  console.log('\n[Test 6] R3 改 HG edge N3.5:N4（awaiting_human:true gate=HG1）→ exit 1 + stderr 含 "死字段"（signal 死字段，set-signal 只改普通段）');
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
-    const artifact = path.join(tmpBase, 'N3.md');
-    fs.writeFileSync(artifact, '七维评分', 'utf8');
-    const r = runSetSignal(stateRoot, dagCopy, ['--edge', 'N3:N4', '--signal', 'green', '--artifact', artifact]);
+    const artifact = path.join(tmpBase, 'N3.5_需求规格_prd.md');
+    fs.writeFileSync(artifact, '背景介绍 产品概述 用户分析 需求说明 里程碑规划', 'utf8');
+    const r = runSetSignal(stateRoot, dagCopy, ['--edge', 'N3.5:N4', '--signal', 'green', '--artifact', artifact]);
     assert(r.status === 1, `exit 1（实际 ${r.status}）`);
     assert(typeof r.stderr === 'string' && r.stderr.includes('死字段'), `stderr 含 "死字段"（实际 "${(r.stderr || '').trim().slice(0, 80)}"）`);
   } finally { cleanup(tmpBase); }

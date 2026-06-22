@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * dag.venture.test.js —— M0 R0.2 业务版 DAG 拓扑断言测试（C7）
+ * dag.venture.test.js —— M1 业务版 DAG 拓扑断言测试（C7 + 修复 #6 每改造点补 test）
  *
  * 纯拓扑结构断言（不跑引擎）：读 dag.venture.json 验证
- *   - 8 节点拓扑 + 主线 N1/N2/N3 真 skill 名 + N4-N8 占位
- *   - exit_condition 含可证伪关键词（市场痛点 / 直接替代 / 七维评分）
+ *   - 9 节点拓扑（M1 插 N3.5 需求规格）+ 主线 N1/N2/N3/N3.5 真 skill 名 + N4-N8 占位
+ *   - exit_condition 含可证伪关键词（市场痛点 / 直接替代 / 七维评分 / PRD 五块）
+ *   - M1 拓扑变更：N3→N4(HG1) 拆为 N3→N3.5(普通段) + N3.5→N4(HG1)，与 N1→N2 同构（铁证1）
  *   - R3 signal 语义（普通段 unknown / HG edge awaiting_human+gate）
  *   - R3 schema 注释三处一致（_comment 含 advance-node.js:294 + resolve-hg.js:101）
  *   - R6 串行约束文档化（_writers 含 set-signal 必须串行调用）
@@ -27,16 +28,17 @@ const dag = JSON.parse(fs.readFileSync(DAG_PATH, 'utf8'));
 const nodeById = Object.fromEntries(dag.nodes.map((n) => [n.id, n]));
 const edge = (from, to) => dag.edges.find((e) => e.from === from && e.to === to);
 
-// ── 拓扑：8 节点 ──
-test('拓扑：8 节点', () => {
-  assert.strictEqual(dag.nodes.length, 8, 'nodes.length === 8');
+// ── 拓扑：9 节点（M1 插 N3.5）──
+test('拓扑：9 节点（M1 插 N3.5 需求规格）', () => {
+  assert.strictEqual(dag.nodes.length, 9, 'nodes.length === 9（M1 后）');
 });
 
-// ── 主线 N1/N2/N3 真 skill 名（最小可演示闭环，50-decision §7）──
-test('主线 N1/N2/N3 真 skill 名', () => {
+// ── 主线 N1/N2/N3/N3.5 真 skill 名（最小可演示闭环，M1 加 N3.5 需求规格）──
+test('主线 N1/N2/N3/N3.5 真 skill 名', () => {
   assert.strictEqual(nodeById.N1.skill, 'venture-sales-judge');
   assert.strictEqual(nodeById.N2.skill, 'venture-sales-judge');
   assert.strictEqual(nodeById.N3.skill, 'hcc-decision');
+  assert.strictEqual(nodeById['N3.5'].skill, 'venture-product-requirement', 'N3.5 需求规格 skill（M1 插入）');
 });
 
 // ── 占位节点 N4-N8 skill=placeholder（C7：拓扑运行 ≠ 业务运行）──
@@ -46,27 +48,35 @@ test('占位节点 N4-N8 skill=placeholder（C7）', () => {
   }
 });
 
-// ── exit_condition 含可证伪关键词（R0.2 L58）──
+// ── exit_condition 含可证伪关键词（M1 加 N3.5 PRD 五块）──
 test('exit_condition 含可证伪关键词', () => {
   assert.ok(nodeById.N1.exit_condition.includes('市场痛点'), 'N1 含 市场痛点');
   assert.ok(nodeById.N2.exit_condition.includes('直接替代'), 'N2 含 直接替代');
   assert.ok(nodeById.N3.exit_condition.includes('七维评分'), 'N3 含 七维评分');
+  // N3.5 PRD 五块关键词（M1，可证伪：fs.existsSync + 五关键词 includes）
+  assert.ok(nodeById['N3.5'].exit_condition.includes('PRD 五块关键词'), 'N3.5 含 PRD 五块关键词');
+  assert.ok(nodeById['N3.5'].exit_condition.includes('背景介绍'), 'N3.5 含 背景介绍');
+  assert.ok(nodeById['N3.5'].exit_condition.includes('里程碑规划'), 'N3.5 含 里程碑规划');
 });
 
 // ── R3：所有普通段 edge（awaiting_human=false）signal=unknown ──
 test('普通段 edge signal=unknown（R3：逼 agent 走 set-signal 改 green）', () => {
   const normal = dag.edges.filter((e) => e.condition.awaiting_human === false);
-  assert.ok(normal.length >= 2, '至少有 N1→N2 / N2→N3 普通段');
+  assert.ok(normal.length >= 3, '至少有 N1→N2 / N2→N3 / N3→N3.5 普通段');
   for (const e of normal) {
     assert.strictEqual(e.condition.signal, 'unknown', `${e.from}→${e.to} 普通段 signal=unknown`);
   }
+  // M1：N3→N3.5 是普通段（与 N1→N2 同构，set-signal 闭环推进到 N3.5）
+  assert.strictEqual(edge('N3', 'N3.5').condition.awaiting_human, false, 'N3→N3.5 普通段 awaiting_human=false');
 });
 
-// ── R3：HG edge N3→N4 awaiting_human+gate=HG1 ──
-test('HG edge N3→N4 awaiting_human+gate=HG1', () => {
-  const c = edge('N3', 'N4').condition;
-  assert.strictEqual(c.awaiting_human, true);
-  assert.strictEqual(c.gate, 'HG1');
+// ── M1：HG edge N3.5→N4 awaiting_human+gate=HG1（M1 前是 N3→N4，拆 N3.5 后 HG1 移到 N3.5→N4）──
+test('HG edge N3.5→N4 awaiting_human+gate=HG1（M1 拓扑变更）', () => {
+  const c = edge('N3.5', 'N4').condition;
+  assert.strictEqual(c.awaiting_human, true, 'N3.5→N4 HG 段 awaiting_human');
+  assert.strictEqual(c.gate, 'HG1', 'N3.5→N4 gate=HG1');
+  // M1：N3→N4 已删除（拆为 N3→N3.5 + N3.5→N4），断言旧 edge 不存在（防回滚遗漏）
+  assert.strictEqual(edge('N3', 'N4'), undefined, 'N3→N4 edge 已删除（M1 拆分）');
 });
 
 // ── R3：HG edge N4→N5 awaiting_human+gate=HG2 ──
@@ -79,7 +89,7 @@ test('HG edge N4→N5 awaiting_human+gate=HG2', () => {
 // ── R3 兜底：所有 HG edge（awaiting_human=true）必须声明 gate（缺 gate → advance exit 1）──
 test('所有 HG edge 声明 gate ∈ {HG1,HG2}', () => {
   const hg = dag.edges.filter((e) => e.condition.awaiting_human === true);
-  assert.strictEqual(hg.length, 2, '恰好 2 个 HG edge（HG1/HG2）');
+  assert.strictEqual(hg.length, 2, '恰好 2 个 HG edge（M1 后：N3.5→N4 HG1 / N4→N5 HG2）');
   for (const e of hg) {
     assert.ok(['HG1', 'HG2'].includes(e.condition.gate), `${e.from}→${e.to} gate ∈ {HG1,HG2}`);
   }

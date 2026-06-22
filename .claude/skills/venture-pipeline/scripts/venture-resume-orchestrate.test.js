@@ -10,7 +10,8 @@
  *   ④ R2.1-验证4 grep venture-resume.js 全文件无 child_process/spawn/exec/vm/eval（C2 纯 Node，不 spawn skill）
  *   ⑤ R2.1-验证5 dag 漂移态（graph_hash 不匹配）orchestrate 不 exit 1（跳过 hash 比对——提示非续传）
  *   ⑥ R2.2 占位节点（N4 skill=placeholder）→ 占位提示"占位"+"最小闭环验证到此为止"
- *   ⑦ R2.1 HG 出边（N3→N4 awaiting_human:true gate=HG1）→ 提示 resolve-hg（不 set-signal，R3 死字段语义）
+ *   ⑦ R2.1 HG 出边（M1 后 N3.5→N4 awaiting_human:true gate=HG1）→ 提示 resolve-hg（不 set-signal，R3 死字段语义）
+ *      注：M1 拓扑变更（修复 #6 延伸）——HG1 从 N3→N4 移到 N3.5→N4，N3 出边变普通段 N3→N3.5（set-signal 闭环覆盖在 Test 2）。
  *
  * 约束（C2）：被测 venture-resume.js 仅 fs+path+crypto（内建）+ 同 skill require。
  *            本测试用 child_process spawn 调被测脚本 + cc-runtime init-state.js 造 fixture。
@@ -184,20 +185,22 @@ function testPlaceholderN4() {
   } finally { cleanup(tmpBase); }
 }
 
-// ── Test 7 [R2.1 HG 分支] N3 HG 出边 → resolve-hg 提示（不 set-signal）──
-function testHGEdgeN3() {
-  console.log('\n[Test 7] R2.1 HG 分支：N3→N4（awaiting_human:true gate=HG1）→ stdout 含 resolve-hg + HG1（不 set-signal）');
+// ── Test 7 [R2.1 HG 分支] N3.5 HG 出边 → resolve-hg 提示（不 set-signal）──
+// M1 拓扑变更（修复 #6 延伸）：HG1 从 N3→N4 移到 N3.5→N4，N3 出边变普通段 N3→N3.5（set-signal 闭环覆盖在 Test 2）。
+// HG 分支测试跟随拓扑迁移到 N3.5（HG1 当前所在前序节点）→ 函数名 testHGEdgeN35 对齐（命名正规化防幻觉）。
+function testHGEdgeN35() {
+  console.log('\n[Test 7] R2.1 HG 分支：N3.5→N4（awaiting_human:true gate=HG1）→ stdout 含 resolve-hg + HG1（不 set-signal）');
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
-    writeState(stateRoot, dagCopy, 'N3');
+    writeState(stateRoot, dagCopy, 'N3.5');
     const r = runOrchestrate(stateRoot, dagCopy);
     assert(r.status === 0, `orchestrate exit 0（实际 ${r.status}）`);
     const out = r.stdout || '';
     assert(out.includes('resolve-hg'), `stdout 含 "resolve-hg"（HG 越闸靠 resolve-hg，非 set-signal）`);
     assert(out.includes('HG1'), `stdout 含 "HG1"（gate 名）`);
-    assert(out.includes('当前节点：N3'), `stdout 含 "当前节点：N3"`);
-    // HG 出边分支不该提示 set-signal N3:N4（signal 是死字段）
-    assert(!out.includes('set-signal --edge N3:N4'), `HG 分支不含 "set-signal --edge N3:N4"（HG edge signal 死字段，R3）`);
+    assert(out.includes('当前节点：N3.5'), `stdout 含 "当前节点：N3.5"`);
+    // HG 出边分支不该提示 set-signal N3.5:N4（signal 是死字段）
+    assert(!out.includes('set-signal --edge N3.5:N4'), `HG 分支不含 "set-signal --edge N3.5:N4"（HG edge signal 死字段，R3）`);
   } finally { cleanup(tmpBase); }
 }
 
@@ -208,7 +211,7 @@ testNoFileWrite();
 testNoSpawn();
 testHashDriftTolerant();
 testPlaceholderN4();
-testHGEdgeN3();
+testHGEdgeN35();
 
 console.log(`\n${'='.repeat(60)}`);
 console.log(`venture-resume-orchestrate.test.js：${passed} passed, ${failed} failed`);

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "description": "层3 cc-venture 业务版 8 节点 DAG（cc-2pp 2026-06-18-cc-venture-layer3 决策 C 装配）。拓扑取自 dag.placeholder.json。N1/N2/N3 填真 skill 名（venture-sales-judge /judge+compete、hcc-decision 七维）驱动最小可演示闭环主线——引擎流转 N1→N2→N3─HG1─→N4 验证缝合层（set-signal+advance 闭环）+ HG 越闸（resolve-hg）机制；N4（HG1 出口）及 N5-N8+HG2 占位 skill=placeholder（C7：占位节点转移拓扑运行 ≠ 业务运行，最小闭环不验证 N4 业务实施）。signal 全 unknown 初值（R3 语义）；HG gate（HG1/HG2）；N6⇄N7 loop_back max_iter=3。",
-  "_comment": "signal 语义（v2-R3，三处一致之一——另两处：方案文本 + 70 验收注释）：普通段 edge（N1→N2 / N2→N3 / N5→N6 / N6→N7 / N7→N6 / N7→N8）的 signal 驱动 advance——unknown 触发 askHG（advance-node.js:325 if(ev.askHG)），agent 必须先 set-signal 改 green 才能推进（这是『主线 unknown 逼 agent 先改 green』闭环的机制基础）；HG edge（N3→N4 gate=HG1 / N4→N5 gate=HG2）的 signal 是死字段——advance-node.js:294 awaiting_human 检查先于 :325 signal 分支，命中即 return（:314-321），根本走不到 signal 评估，HG 越闸靠 resolve-hg.js:101,110 取 outEdges[0].to 无脑推进不读 signal，保留 signal=unknown 仅为 schema 一致性。",
+  "description": "层3 cc-venture 业务版 9 节点 DAG（M1 cc-2pp 2026-06-22-cc-venture-layer3-redesign 插 N3.5 需求规格）。N1/N2/N3 填真 skill 名（venture-sales-judge /judge+compete、hcc-decision 七维）+ N3.5 需求规格（venture-product-requirement 引 grill-me）驱动最小可演示闭环主线——引擎流转 N1→N2→N3→N3.5（普通段 set-signal 闭环）─HG1─→N4 验证缝合层（set-signal+advance 闭环）+ HG 越闸（resolve-hg）机制；N4（HG1 出口）及 N5-N8+HG2 占位 skill=placeholder（C7：占位节点转移拓扑运行 ≠ 业务运行，最小闭环不验证 N4 业务实施）。signal 全 unknown 初值（R3 语义）；HG gate（HG1/HG2）；N6⇄N7 loop_back max_iter=3。",
+  "_comment": "signal 语义（v2-R3，三处一致之一——另两处：方案文本 + 70 验收注释）：普通段 edge（N1→N2 / N2→N3 / N3→N3.5 / N5→N6 / N6→N7 / N7→N6 / N7→N8）的 signal 驱动 advance——unknown 触发 askHG（advance-node.js:325 if(ev.askHG)），agent 必须先 set-signal 改 green 才能推进（这是『主线 unknown 逼 agent 先改 green』闭环的机制基础；M1 插 N3.5 需求规格节点，N3→N3.5 普通段与 N1→N2 同构，orchestrate 取 N3 出边识别 normalEdge 自动生成 set-signal green 推进到 N3.5）；HG edge（N3.5→N4 gate=HG1 / N4→N5 gate=HG2）的 signal 是死字段——advance-node.js:294 awaiting_human 检查先于 :325 signal 分支，命中即 return（:314-321），根本走不到 signal 评估，HG 越闸靠 resolve-hg.js:101,110 取 outEdges[0].to 无脑推进不读 signal，保留 signal=unknown 仅为 schema 一致性。",
   "_writers": "写者隔离（C1）+ 串行约束（R6）：dag.json 写者 = boss（手改拓扑）+ venture-resume.set-signal（代 agent 改普通段 edge.signal，唯一 signal 写者）；pipeline-state.json 的 graph_hash 字段写者 = pipeline-state.init / advance-node / resolve-hg / venture-resume.set-signal（set-signal 仅 in-place 改 graph_hash 字段，非整文件覆盖，禁串调 init 清零推进态 R1）；set-signal 必须串行调用（同 dag 同 root 不可并行，read-modify-write 在并发下存在丢更新理论风险，由 7×24 单机串行消除）。",
   "nodes": [
     {
@@ -21,6 +21,12 @@
       "type": "task",
       "skill": "hcc-decision",
       "exit_condition": "artifact .venture/artifacts/N3-方案.md 存在且含关键词 七维评分（hcc-decision 调用 venture-sales-judge 七维框架对方案评分后拍板；可证伪：fs.existsSync + 关键词 includes）"
+    },
+    {
+      "id": "N3.5",
+      "type": "task",
+      "skill": "venture-product-requirement",
+      "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含 PRD 五块关键词（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；venture-product-requirement /prd 调 grill-me 追问产出；可证伪：fs.existsSync + 五关键词 includes）"
     },
     {
       "id": "N4",
@@ -66,6 +72,11 @@
     },
     {
       "from": "N3",
+      "to": "N3.5",
+      "condition": { "signal": "unknown", "awaiting_human": false }
+    },
+    {
+      "from": "N3.5",
       "to": "N4",
       "condition": { "signal": "unknown", "awaiting_human": true, "gate": "HG1" }
     },

@@ -43,7 +43,7 @@ if (-not (Test-Path "$sandbox\.claude\skills\cc-runtime\scripts\init-state.js"))
   throw 'cc-runtime 复制失败，require 链会断（advance-node.js require ../../cc-runtime/scripts/init-state）'
 }
 
-# 5. 硬检查 dag.venture.json（业务版 8 节点 DAG）
+# 5. 硬检查 dag.venture.json（业务版 9 节点 DAG，M1 插 N3.5 需求规格——修复 #6 延伸：拓扑文档同步防幻觉）
 if (-not (Test-Path "$sandbox\.claude\skills\venture-pipeline\dag.venture.json")) {
   throw 'dag.venture.json 复制失败'
 }
