@@ -204,6 +204,26 @@ function testHGEdgeN35() {
   } finally { cleanup(tmpBase); }
 }
 
+// ── Test 8 [发现2 M1.5] N3 普通段出边 N3→N3.5 → set-signal（N3 artifact 路径提取专项断言）──
+// 发现2（M1.5）：Test 2 只测 N1 普通段 orchestrate，N3→N3.5 普通段（M1 拓扑变更新增）无专项断言。
+// 补 N3 专项断言：① 验证 M1 拓扑 N3→N3.5 普通段在 orchestrate 正确生成 set-signal green；
+//                 ② 验证 N3 的 artifact 路径 .venture/artifacts/N3-方案.md 被 extractArtifact 正确提取
+//                   （与 N3.5 的 .hcc/product/ by-design 形成对照——见 dag.venture.json N3.5 exit_condition 标注）。
+function testN3NormalEdgeOrchestrate() {
+  console.log('\n[Test 8] 发现2 M1.5：N3 普通段出边 N3→N3.5 → stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    writeState(stateRoot, dagCopy, 'N3');
+    const r = runOrchestrate(stateRoot, dagCopy);
+    assert(r.status === 0, `orchestrate exit 0（实际 ${r.status}，stderr=${(r.stderr || '').trim().slice(0, 80)}）`);
+    const out = r.stdout || '';
+    assert(out.includes('当前节点：N3'), `stdout 含 "当前节点：N3"`);
+    assert(out.includes('skill: hcc-decision'), `stdout 含 "skill: hcc-decision"（N3 skill）`);
+    assert(out.includes('set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md'),
+      `stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md（M1 普通段 + N3 artifact 路径提取，对照 N3.5 .hcc/product/ by-design）`);
+  } finally { cleanup(tmpBase); }
+}
+
 // ── 主入口 ──
 testHelp();
 testN1InstructionCard();
@@ -212,6 +232,7 @@ testNoSpawn();
 testHashDriftTolerant();
 testPlaceholderN4();
 testHGEdgeN35();
+testN3NormalEdgeOrchestrate();
 
 console.log(`\n${'='.repeat(60)}`);
 console.log(`venture-resume-orchestrate.test.js：${passed} passed, ${failed} failed`);
