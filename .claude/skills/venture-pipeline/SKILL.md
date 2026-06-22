@@ -191,7 +191,7 @@ dag.json            ← 数据驱动拓扑（三原语，换 DAG 不改引擎代
    ```
    → 看 stdout 指令卡的「该激活的 skill / 完成判据 / 完成后你必须做（逐字 set-signal + advance 命令）」。
 
-2. **执行 skill**：照指令卡激活 skill（venture-judge `/judge` / `/compete`，hcc-decision 七维评分等），产出 artifact 到 `.venture/artifacts/<node>-*.md`（须含 dag 该节点 exit_condition 关键词，可证伪）。
+2. **执行 skill**：照指令卡激活 skill（venture-sales-judge `/judge` / `/compete`，hcc-decision 七维评分等），产出 artifact 到 `.venture/artifacts/<node>-*.md`（须含 dag 该节点 exit_condition 关键词，可证伪）。
 
 3. **set-signal**（普通段 edge 唯一写者）
    ```bash

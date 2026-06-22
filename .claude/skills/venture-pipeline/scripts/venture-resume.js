@@ -246,7 +246,7 @@ function escapeRegex(s) {
 }
 
 // 从 exit_condition 提取入口命令（"skill /entry" 模式；skill 前缀限定，排除 .venture/artifacts 路径里的 /）
-// N1: exit_condition 含 "venture-judge /judge 阶段一" → /judge；N2: → /compete；N3(hcc-decision 无 / 入口) → null
+// N1: exit_condition 含 "venture-sales-judge /judge 阶段一" → /judge；N2: → /compete；N3(hcc-decision 无 / 入口) → null
 function extractEntry(skill, exitCondition) {
   if (typeof skill !== 'string' || typeof exitCondition !== 'string') return null;
   const re = new RegExp(escapeRegex(skill) + '\\s+/([a-z][a-z0-9_-]*)', 'i');

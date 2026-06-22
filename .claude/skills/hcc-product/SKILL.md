@@ -41,7 +41,7 @@ trigger: hcc-product/产品部/产品设计/需求挖掘
 
 - **cc-loop**（循环工程方法论）：已在工具箱 ✓ —— 非产品技能，提供 plan/review 回环方法论。
 
-**[层3 待装配]**：venture-product（产品设计）/ venture-uiux（UIUX 设计）—— 层3 cc-venture 新建（charter L80 真空标注，本项目当前无产品/UIUX 业务技能）。00-explore §四产品部 ❌ 真空。
+**[层3 待装配]**：venture-product（产品设计）/ venture-product-uiux（UIUX 设计）—— 层3 cc-venture 新建（charter L80 真空标注，本项目当前无产品/UIUX 业务技能）。00-explore §四产品部 ❌ 真空。
 
 ## §6 trigger
 

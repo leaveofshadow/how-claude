@@ -27,15 +27,15 @@ foreach ($s in $projectSkills) {
   Copy-Item -Recurse -Force "$srcBase\$s" $dst
 }
 
-# 3. venture-judge 从用户级复制（开发源码仓无此 skill；决策 D 项目级+用户级双防线）
-$ventureJudgeSrc = 'C:\Users\newuser\.claude\skills\venture-judge'
+# 3. venture-sales-judge 从用户级复制（开发源码仓无此 skill；决策 D 项目级+用户级双防线）
+$ventureJudgeSrc = 'C:\Users\newuser\.claude\skills\venture-sales-judge'
 # 同 #2 幂等修复：先删目标再复制，防嵌套
-$ventureJudgeDst = "$sandbox\.claude\skills\venture-judge"
+$ventureJudgeDst = "$sandbox\.claude\skills\venture-sales-judge"
 if (Test-Path $ventureJudgeDst) { Remove-Item $ventureJudgeDst -Recurse -Force }
 if (Test-Path $ventureJudgeSrc) {
   Copy-Item -Recurse -Force $ventureJudgeSrc $ventureJudgeDst
 } else {
-  Write-Warning "用户级 venture-judge 不存在（$ventureJudgeSrc）—— /judge 将靠 fallback；项目级无此 skill。"
+  Write-Warning "用户级 venture-sales-judge 不存在（$ventureJudgeSrc）—— /judge 将靠 fallback；项目级无此 skill。"
 }
 
 # 4. 硬检查 cc-runtime（require 链不断的前提：advance-node.js → ../../cc-runtime/scripts/init-state）
@@ -54,4 +54,4 @@ Write-Host '下一步（决策 E 6 步验收 Step 0 init）：'
 Write-Host "  cd $sandbox"
 Write-Host '  node .claude\skills\venture-pipeline\scripts\pipeline-state.js init --dag .claude\skills\venture-pipeline\dag.venture.json'
 Write-Host ''
-Write-Host '复制清单：5 项目级 skill（venture-pipeline/hcc-decision/hcc-sales/hcc-org/cc-runtime）+ venture-judge（用户级）= 6 skill'
+Write-Host '复制清单：5 项目级 skill（venture-pipeline/hcc-decision/hcc-sales/hcc-org/cc-runtime）+ venture-sales-judge（用户级）= 6 skill'

@@ -180,11 +180,11 @@ trigger: hcc-org/部门协作/部门交接
 
 | 部门 | 节点 | 工具箱技能（已 installed） | 覆盖度 | 缺口（层3 待装配） |
 |------|------|--------------------------|:------:|------------------|
-| **决策部** | N3/N4/HG | cc-2pp（判官小组 + 对抗验证）/ cc-goal（终态条件）/ cc-orchestration（编排决策树） | ✓ 厚实 | 无（venture-judge 系统级 installed，层3 装配承接） |
-| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | venture-product（产品设计）/ venture-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
+| **决策部** | N3/N4/HG | cc-2pp（判官小组 + 对抗验证）/ cc-goal（终态条件）/ cc-orchestration（编排决策树） | ✓ 厚实 | 无（venture-sales-judge 系统级 installed，层3 装配承接） |
+| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | venture-product（产品设计）/ venture-product-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
 | **开发部** | 实施节点 | cc-loop（worktree SOP + 循环合同 + 护栏三件套）/ executor（OMC autopilot/ralph，外部 agent）/ superpowers:* 系列（外部 skill 生态） | ⚠️ 中等 | 代码质量/测试/重构专项（依赖外部 skill 生态，非本项目技能） |
 | **运维部** | 层1 贯穿（横切） | cc-runtime（state/trace/Hook 地基）/ cc-config（六层配置 + CLAUDE.md 诊断）/ cc-context（上下文健康） | ✓ 厚实 | 无（三者覆盖 7×24 保活全链路） |
-| **销售部** | N1/N2/N6 | venture-judge（系统级 installed skill，创业评估师）/ cc-loop（循环方法论） | ❌ 真空 | venture-judge 层3 装配承接（N1 调查/N2 竞品/N6 画像无本项目技能）+ 销售技能层3 新建（charter L80 真空） |
+| **销售部** | N1/N2/N6 | venture-sales-judge（系统级 installed skill，创业评估师）/ cc-loop（循环方法论） | ❌ 真空 | venture-sales-judge 层3 装配承接（N1 调查/N2 竞品/N6 画像无本项目技能）+ 销售技能层3 新建（charter L80 真空） |
 
 > **trigger 竞争规避**（00-explore §5.3）：hcc-org 是协议层，无业务 trigger（本文件 trigger 仅 `hcc-org/部门协作/部门交接`），避免与 cc-* 工具箱技能的 trigger 竞争。5 部门各自独立 trigger（hcc-{dept}），与 cc-2pp 的「2pp/judge」正交。
 

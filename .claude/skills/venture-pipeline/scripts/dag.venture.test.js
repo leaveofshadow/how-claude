@@ -34,8 +34,8 @@ test('拓扑：8 节点', () => {
 
 // ── 主线 N1/N2/N3 真 skill 名（最小可演示闭环，50-decision §7）──
 test('主线 N1/N2/N3 真 skill 名', () => {
-  assert.strictEqual(nodeById.N1.skill, 'venture-judge');
-  assert.strictEqual(nodeById.N2.skill, 'venture-judge');
+  assert.strictEqual(nodeById.N1.skill, 'venture-sales-judge');
+  assert.strictEqual(nodeById.N2.skill, 'venture-sales-judge');
   assert.strictEqual(nodeById.N3.skill, 'hcc-decision');
 });
 

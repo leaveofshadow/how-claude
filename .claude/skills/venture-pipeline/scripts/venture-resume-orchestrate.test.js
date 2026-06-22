@@ -4,7 +4,7 @@
  *
  * 覆盖 70-requirements R2.1-R2.2：
  *   ① R2.1-验证1 orchestrate --help 含 --dag/--root（子命令注册）
- *   ② R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-judge / 入口: /judge /
+ *   ② R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-sales-judge / 入口: /judge /
  *      set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md
  *   ③ R2.1-验证3 orchestrate 后 state 目录无新增文件（纯 stdout，不写文件——C1 写者隔离：orchestrate 非写者）
  *   ④ R2.1-验证4 grep venture-resume.js 全文件无 child_process/spawn/exec/vm/eval（C2 纯 Node，不 spawn skill）
@@ -114,7 +114,7 @@ function testHelp() {
 
 // ── Test 2 [R2.1-验证2 核心] N1 指令卡四串 ──
 function testN1InstructionCard() {
-  console.log('\n[Test 2] R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-judge / 入口: /judge / set-signal ... N1-机会调查.md');
+  console.log('\n[Test 2] R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-sales-judge / 入口: /judge / set-signal ... N1-机会调查.md');
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
     writeState(stateRoot, dagCopy, 'N1');
@@ -122,8 +122,8 @@ function testN1InstructionCard() {
     assert(r.status === 0, `orchestrate exit 0（实际 ${r.status}，stderr=${(r.stderr || '').trim().slice(0, 80)}）`);
     const out = r.stdout || '';
     assert(out.includes('当前节点：N1'), `stdout 含 "当前节点：N1"`);
-    assert(out.includes('skill: venture-judge'), `stdout 含 "skill: venture-judge"`);
-    assert(out.includes('入口: /judge'), `stdout 含 "入口: /judge"（从 exit_condition 正则提取 "venture-judge /judge"）`);
+    assert(out.includes('skill: venture-sales-judge'), `stdout 含 "skill: venture-sales-judge"`);
+    assert(out.includes('入口: /judge'), `stdout 含 "入口: /judge"（从 exit_condition 正则提取 "venture-sales-judge /judge"）`);
     assert(out.includes('set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md'),
       `stdout 含 set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md（逐字命令）`);
   } finally { cleanup(tmpBase); }

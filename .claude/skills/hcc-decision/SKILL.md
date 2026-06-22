@@ -49,7 +49,7 @@ trigger: hcc-decision/决策部/judge/方案拍板
 - **cc-goal**（终态条件设计）：已在工具箱 ✓ —— HG 拍板的终态条件。
 - **cc-orchestration**（编排决策树）：已在工具箱 ✓ —— 部门协作编排。
 
-**[层3 待装配]**：venture-judge（系统级 installed skill，创业评估师）—— N1 调查 / N2 竞品 / N6 画像的创业评估能力，层3 cc-venture 装配承接（本项目当前无承接，charter L80 真空）。
+**[层3 待装配]**：venture-sales-judge（系统级 installed skill，创业评估师）—— N1 调查 / N2 竞品 / N6 画像的创业评估能力，层3 cc-venture 装配承接（本项目当前无承接，charter L80 真空）。
 
 ## §6 trigger
 
