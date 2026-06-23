@@ -1,7 +1,7 @@
 {
   "_comment": "hcc-org 外部 skill 依赖声明（M6 R6.2，charter 块3 自检机制 + 块1 复盘 P2 部署契约）。hcc-preflight.js 读取此清单，对每条 check_paths 逐个 existsSync 查（项目级 + 用户级 fallback），任一存在即视为 installed。缺失按 required 分级：true 阻断（N3.5/N7 无法启动）/ false 告警（不阻断主闭环）。P2 新增 location/required_for 字段（§6 部署契约用，preflight 不读=向后兼容）。",
   "_design_note": "grill-me 实测装在用户级（charter L21 `npx skills add ... -g -y` 全局装=用户级 C:/Users/newuser/.claude/skills/），故 check_paths 含用户级 fallback。bergside slug 运行时按产品类型动态选（R5.3 默认集），preflight 查默认 slug minimal 占位。venture-sales-judge（N1/N2）系统级 installed，此前缺声明，P2 补全。location=当前实际部署位置（§6.1 三类）；required_for=哪些产出等级（§2 类型集）需要该依赖（部署升级判定用，§6.2 矩阵）。",
-  "version": 2,
+  "version": 3,
   "dependencies": [
     {
       "name": "grill-me",
@@ -20,7 +20,7 @@
     {
       "name": "bergside-type-ui",
       "source": "bergside/awesome-design-skills",
-      "install": "npx typeui.sh pull <slug> -p claude",
+      "install": "npx typeui.sh pull minimal -p claude",
       "required": false,
       "required_by": "N7 迭代优化（venture-product-uiux 选风格 slug pull 生成设计系统）",
       "location": "user",
@@ -29,7 +29,7 @@
         ".claude/skills/minimal/SKILL.md",
         "C:/Users/newuser/.claude/skills/minimal/SKILL.md"
       ],
-      "note": "charter 块2 定源 bergside Type UI（67 slug registry）；<slug> 运行时按 PRD §2 产品类型动态选（R5.3 默认集 minimal/shadcn/glassmorphism/brutalism/editorial/neumorphism/luxury）；check_paths 用默认 slug minimal 占位，缺失仅告警（required=false，不阻断 N3.5 主闭环）；PoC 档可不装（N7 迭代优化时才需）"
+      "note": "charter 块2 定源 bergside Type UI（67 slug registry）；install 默认 pull minimal 可直接执行（P3.2 堵 REVIEW MINOR 3.3：<slug> 占位不可执行→换默认 minimal）；实际按 PRD §2 产品类型动态换 slug（R5.3 默认集 minimal/shadcn/glassmorphism/brutalism/editorial/neumorphism/luxury），check_paths 用默认 minimal 占位；缺失仅告警（required=false，不阻断 N3.5 主闭环）；PoC 档可不装（N7 迭代优化时才需）"
     },
     {
       "name": "venture-sales-judge",

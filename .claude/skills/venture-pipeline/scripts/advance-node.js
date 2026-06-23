@@ -256,7 +256,12 @@ function cmdAdvance(opts) {
   // R2.1 找出边
   const outEdges = findOutEdges(edges, fromNode);
   if (outEdges.length === 0) {
-    // 到达终点
+    // 到达终点（P3.1 堵 REVIEW MINOR 3.2：N8 completed≠业务规模化未标注，boss 看 completed 易误读"规模化做完"）
+    // 数据驱动读 node.skill：终点 skill=placeholder → 业务未装配，标注防误读（C7：拓扑运行≠业务运行）。
+    // 落点选 advance 返回而非 dag.json exit_condition：改 dag.json 会破坏 C1 写者隔离（_writers 明文写者=boss 手改拓扑）
+    //   + graph_hash 一致性（venture-resume.js:132 漂移检测 throw 拒绝续传当前活跃 state）。advance 返回是 agent 可写引擎层。
+    const completedNode = nodes.find((n) => n.id === fromNode) || null;
+    const businessInstalled = !(completedNode && completedNode.skill === 'placeholder');
     const now = new Date().toISOString();
     state = Object.assign({}, state, {
       frontier: [],
@@ -265,16 +270,22 @@ function cmdAdvance(opts) {
         action: 'advance',
         from: { current_node: fromNode },
         to: { current_node: fromNode },
-        reason: 'completed:无 out-edge 到达终点',
+        reason: businessInstalled
+          ? `completed:无 out-edge 到达终点（${fromNode} skill=${completedNode ? completedNode.skill : '?'}，业务已装配）`
+          : `completed:无 out-edge 到达终点（${fromNode}.skill=placeholder，业务未装配，引擎 completed 仅=拓扑到达，C7）`,
       }]),
     });
     atomicWriteJSON(stateFilePath(stateRoot), state);
+    const baseMsg = `到达终点 ${fromNode}（无 out-edge）`;
     return {
       ok: true,
       command: 'advance',
       action: 'completed',
       at: fromNode,
-      message: `到达终点 ${fromNode}（无 out-edge）`,
+      business_installed: businessInstalled,  // P3.1：数据驱动标注（false=终点 placeholder，业务规模化未装配）
+      message: businessInstalled
+        ? baseMsg
+        : `${baseMsg}（引擎 completed 仅=拓扑到达，业务未装配：${fromNode}.skill=placeholder，C7；防误读"规模化做完"）`,
     };
   }
 

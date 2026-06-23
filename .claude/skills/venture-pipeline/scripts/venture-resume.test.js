@@ -277,11 +277,43 @@ function testDepartmentMidStateResume() {
   }
 }
 
+// ── Test 5 P3.3 resume current_node=null throw（REVIEW MINOR 4.3：shift 后 resume 撞 null 无指引）──
+// shift-direction 重置 current_node=null（advance-node.js:106）后直接 resume → 应 throw + stderr 给可执行命令（非动词）。
+// 注意：hash 漂移检测（venture-resume.js:131-134）先于 null 检查（:147），故 fixture graph_hash 必须匹配 dag，否则撞漂移 throw。
+function testResumeNullThrow() {
+  console.log('\n[Test 5] P3.3 resume current_node=null throw：换向后 resume 撞错 + stderr 给 advance 命令');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // pipeline-state：current_node=null（shift-direction 重置后态），graph_hash 匹配 dag（过漂移检测）
+    writeJSON(psPath(stateRoot), {
+      direction_version: 1,
+      current_node: null,
+      frontier: [],
+      iteration: 0,
+      status: 'active',
+      gate: null,
+      graph_hash: dagHash(dagCopy),
+      history: [],
+    });
+
+    const r = runResume(stateRoot, dagCopy);
+
+    assert(r.status === 1, `exit 1（实际 ${r.status}，current_node=null 应拒绝续传）`);
+    assert(typeof r.stderr === 'string' && r.stderr.includes('无可恢复节点'),
+      `stderr 含"无可恢复节点"（实际 "${(r.stderr || '').trim().slice(0, 120)}"）`);
+    assert(typeof r.stderr === 'string' && r.stderr.includes('advance-node.js advance'),
+      `stderr 给可执行命令 advance-node.js advance（非动词，实际 "${(r.stderr || '').trim().slice(0, 120)}"）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
 // ── 主入口 ──
 testR41Resume();
 testR41Drift();
 testR42Trace();
 testDepartmentMidStateResume();
+testResumeNullThrow();
 
 console.log(`\n${'='.repeat(60)}`);
 console.log(`venture-resume.test.js：${passed} passed, ${failed} failed`);

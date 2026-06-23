@@ -145,7 +145,10 @@ function cmdResume(opts) {
   const resumeNode = currentNode;
   const resumeIter = (parsed.iter !== null) ? parsed.iter : (typeof state.iteration === 'number' ? state.iteration : 0);
   if (!resumeNode) {
-    throw new Error(`pipeline-state.current_node 为 null，无可恢复节点（请先 advance 进入起点）`);
+    // P3.3 堵 REVIEW MINOR 4.3：shift-direction 后 current_node=null，boss 直接 resume 撞错无指引。
+    // 给可执行命令（非动词"请先 advance"）：首次 init 后或换向后，advance 会重新定位起点
+    // （advance-node.js:224 current_node=null → nodes[0].id）。
+    throw new Error(`pipeline-state.current_node 为 null，无可恢复节点（首次 init 后或 shift-direction 换向后 current_node=null；请先 node advance-node.js advance 重新定位起点）`);
   }
 
   // R4.2 追加 resume 事件（INV-4：带当前 direction_version）

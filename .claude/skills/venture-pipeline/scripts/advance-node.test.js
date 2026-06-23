@@ -405,6 +405,80 @@ function testR52ConvergedExit() {
   }
 }
 
+// ── 测试⑩ P3.1 completed 标注：placeholder 终点 business_installed=false + message 防误读 ──
+// REVIEW MINOR 3.2：N8 completed≠业务规模化（未标注），boss 看 completed 易误读"规模化做完"。
+// 落点 advance-node.js completed 返回（数据驱动读 node.skill），不改 dag.json（保 C1 写者隔离 + graph_hash）。
+// placeholder 终点 → business_installed=false + message 含"业务未装配/拓扑到达"。
+function testR26Completed() {
+  console.log('\n[Test 10] P3.1 completed 标注：placeholder 终点 business_installed=false + 防误读规模化');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    // 迷你 dag：N1(placeholder) 无出边 → advance enter N1 → 再 advance completed
+    const dagObj = {
+      version: 1,
+      nodes: [
+        { id: 'N1', type: 'task', skill: 'placeholder', exit_condition: 'N1（占位终点）' },
+      ],
+      edges: [],
+      loop_backs: [],
+    };
+    writeJSON(dagCopy, dagObj);
+
+    spawnSync('node', [PIPELINE_STATE, 'init', '--dag', dagCopy, '--root', stateRoot], { encoding: 'utf8' });
+    runAdvance(stateRoot, dagCopy);  // enter N1（current_node=null → N1）
+    const r = runAdvance(stateRoot, dagCopy);  // N1 无 out-edge → completed
+    assert(r.status === 0, `advance exit 0（实际 ${r.status}；stderr=${JSON.stringify(r.stderr)}）`);
+
+    const rObj = JSON.parse(r.stdout);
+    assert(rObj.action === 'completed', `action=completed（实际 ${rObj.action}）`);
+    assert(rObj.business_installed === false,
+      `business_installed=false（placeholder 终点=业务未装配，实际 ${rObj.business_installed}）`);
+    assert(/业务未装配/.test(rObj.message),
+      `message 含"业务未装配"（实际 ${JSON.stringify(rObj.message)}）`);
+    assert(/拓扑到达/.test(rObj.message),
+      `message 含"拓扑到达"（区分引擎完成 vs 业务规模化，实际 ${JSON.stringify(rObj.message)}）`);
+
+    const s = readJSON(psPath(stateRoot));
+    const lastEvent = s.history[s.history.length - 1];
+    assert(/placeholder/.test(lastEvent.reason) && /业务未装配/.test(lastEvent.reason),
+      `history reason 含 placeholder+业务未装配（实际 ${JSON.stringify(lastEvent.reason)}）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
+// ── 测试⑩b P3.1 对照：真业务终点（skill≠placeholder）business_installed=true + 不误标 ──
+// 反证：数据驱动对真业务终点不标注（businessInstalled=!(skill==='placeholder') 自然 true）。
+function testR26CompletedRealSkill() {
+  console.log('\n[Test 10b] P3.1 对照：真业务终点 business_installed=true + message 不含"未装配"');
+  const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
+  try {
+    const dagObj = {
+      version: 1,
+      nodes: [
+        { id: 'N1', type: 'task', skill: 'venture-sales-scale', exit_condition: 'N1（真业务终点）' },
+      ],
+      edges: [],
+      loop_backs: [],
+    };
+    writeJSON(dagCopy, dagObj);
+
+    spawnSync('node', [PIPELINE_STATE, 'init', '--dag', dagCopy, '--root', stateRoot], { encoding: 'utf8' });
+    runAdvance(stateRoot, dagCopy);  // enter N1
+    const r = runAdvance(stateRoot, dagCopy);  // N1 无 out-edge → completed
+    assert(r.status === 0, `advance exit 0（实际 ${r.status}）`);
+
+    const rObj = JSON.parse(r.stdout);
+    assert(rObj.action === 'completed', `action=completed（实际 ${rObj.action}）`);
+    assert(rObj.business_installed === true,
+      `business_installed=true（真业务终点，业务已装配，实际 ${rObj.business_installed}）`);
+    assert(!/业务未装配/.test(rObj.message),
+      `message 不含"业务未装配"（真业务终点不误标，实际 ${JSON.stringify(rObj.message)}）`);
+  } finally {
+    cleanup(tmpBase);
+  }
+}
+
 // ── 运行 ──
 testR21Flow();
 testR22Red();
@@ -415,6 +489,8 @@ testR24HG();
 testR24C1Direction();
 testR25Shift();
 testR52ConvergedExit();
+testR26Completed();
+testR26CompletedRealSkill();
 
 console.log(`\n==== ${passed} passing, ${failed} failing ====`);
 process.exit(failed === 0 ? 0 : 1);
