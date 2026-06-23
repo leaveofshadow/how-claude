@@ -5,6 +5,8 @@
 .omc/
 .remember/
 .venture/
+# hcc-org 自检运行态产物（preflight 每次跑重生成，含机器特定用户级路径 + timestamp，不入库；业务产物 .hcc/{部门}/{venture}/*.md 仍入库做基线）
+.hcc/ops/hcc-org/
 .claude/compact-snapshots/
 .venv/
 .venv-perf/

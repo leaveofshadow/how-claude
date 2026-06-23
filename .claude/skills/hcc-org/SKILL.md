@@ -15,6 +15,33 @@ trigger: hcc-org/部门协作/部门交接
 
 ---
 
+## §0 初始化自检（env-scan，会话启动协议）
+
+> **位置**：M6 R6.4（charter 块3 自检机制）。hcc-org 是组织宪法容器，5 部门激活协作前先自检外部 skill 依赖（grill-me / bergside-type-ui）是否就位，避免运行到 N3.5/N7 才发现缺依赖。自检脚本写 `.hcc/ops/`（非层1 state），不触碰 §4 纯引用约束。
+
+### 自检协议（触发：会话启动 / env-scan.json TTL 过期 > 24h）
+
+1. **跑 preflight**：`node .claude/skills/hcc-org/scripts/hcc-preflight.js`（纯 Node fs + path，C2 合规；exit 0 总是，缺失在 json 里分级而非硬闸）
+2. **读 env-scan.json**：`.hcc/ops/hcc-org/env-scan.json`（preflight 自动落盘，含 timestamp + 依赖状态 + summary；TTL 24h 缓存：< 24h 返 cached:true，>= 24h 重扫）
+3. **缺失分级处置**：
+   - **阻断（required:true 缺失）** → 对应节点无法启动：
+     - `grill-me` 缺失 → **N3.5 需求规格**停摆（venture-product-requirement 激活 grill-me 追问挖需求）→ 补装 `npx skills add mattpocock/skills@grill-me -g -y`（`-g` 用户级，charter L21 全局装）后重跑
+   - **告警（required:false 缺失）** → 不阻断主闭环，用到时再补：
+     - `bergside-type-ui` 缺失 → N7 迭代优化用到时补 `npx typeui.sh pull <slug> -p claude`（slug 按 PRD 产品类型动态选）
+4. **依赖清单**：`.claude/skills/hcc-org/scripts/hcc-dependencies.json`（声明 check_paths 项目级 + 用户级 fallback + required 分级 + install 命令）
+
+### 自检四态（读 env-scan summary）
+
+| env-scan summary 字段 | 处置 |
+|----------------------|------|
+| `missing_block=0 且 missing_warn=0` | ✅ 全部就绪 → 正常进 §1 协作总则 |
+| `missing_block=0 且 missing_warn>=1` | ℹ️ optional 缺失（N7 才用），记录告警，继续 |
+| `missing_block>=1` | ⚠️ required 缺失，对应节点（N3.5）无法启动 → 补装后重跑自检 |
+
+> 自检非硬闸（exit 0）：env-scan.json 的缺失分级供部门激活时参考，部门遇阻断级缺失须先补装再启动对应节点。
+
+---
+
 ## §1 协作总则（5 条，5 部门共同站立的地基）
 
 ### 总则1：部门间不直接对话，经层1 state/direction/trace 交换上下文
@@ -198,4 +225,4 @@ trigger: hcc-org/部门协作/部门交接
 
 ---
 
-> **hcc-org/SKILL.md 完。** 5 段：§1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射。protocol_version: "D10-2026-06-17" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 写者函数调用（§4 纯引用验证）。
+> **hcc-org/SKILL.md 完。** 6 段：§0 初始化自检 + §1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射。protocol_version: "D10-2026-06-17" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 state 写者函数调用（§4 纯引用验证）；§0 自检脚本写 .hcc/ops/（非层1 state）。

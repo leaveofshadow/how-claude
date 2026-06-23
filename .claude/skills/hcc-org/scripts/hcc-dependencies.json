@@ -1,0 +1,31 @@
+{
+  "_comment": "hcc-org 外部 skill 依赖声明（M6 R6.2，charter 块3 自检机制）。hcc-preflight.js 读取此清单，对每条 check_paths 逐个 existsSync 查（项目级 + 用户级 fallback），任一存在即视为 installed。缺失按 required 分级：true 阻断（N3.5/N7 无法启动）/ false 告警（不阻断主闭环）。",
+  "_design_note": "grill-me 实测装在用户级（charter L21 `npx skills add ... -g -y` 全局装=用户级 C:/Users/newuser/.claude/skills/），故 check_paths 含用户级 fallback（反幻觉修正：70 R6.1 原写项目级 .claude/skills/grill-me/SKILL.md 单路径，实测项目级不存在）。bergside slug 运行时按产品类型动态选（R5.3 默认集），preflight 查默认 slug minimal 占位，缺失仅告警（N7 才用，不阻断 N3.5 主闭环）。",
+  "version": 1,
+  "dependencies": [
+    {
+      "name": "grill-me",
+      "source": "mattpocock/skills@grill-me",
+      "install": "npx skills add mattpocock/skills@grill-me -g -y",
+      "required": true,
+      "required_by": "N3.5 需求规格（venture-product-requirement 激活 grill-me 追问挖需求）",
+      "check_paths": [
+        ".claude/skills/grill-me/SKILL.md",
+        "C:/Users/newuser/.claude/skills/grill-me/SKILL.md"
+      ],
+      "note": "charter 块1 定源 mattpocock/skills@grill-me（365K installs 原版）；-g 全局装=用户级"
+    },
+    {
+      "name": "bergside-type-ui",
+      "source": "bergside/awesome-design-skills",
+      "install": "npx typeui.sh pull <slug> -p claude",
+      "required": false,
+      "required_by": "N7 迭代优化（venture-product-uiux 选风格 slug pull 生成设计系统）",
+      "check_paths": [
+        ".claude/skills/minimal/SKILL.md",
+        "C:/Users/newuser/.claude/skills/minimal/SKILL.md"
+      ],
+      "note": "charter 块2 定源 bergside Type UI（67 slug registry）；<slug> 运行时按 PRD §2 产品类型动态选（R5.3 默认集 minimal/shadcn/glassmorphism/brutalism/editorial/neumorphism/luxury）；此处 check_paths 用默认 slug minimal 占位，缺失仅告警（required=false，不阻断 N3.5 主闭环）；R5.3 定型后可扩为多 slug 查询"
+    }
+  ]
+}
