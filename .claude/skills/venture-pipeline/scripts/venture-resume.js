@@ -310,6 +310,23 @@ function cmdOrchestrate(opts) {
   lines.push(`- skill: ${node.skill}`);
   lines.push(`- 入口: ${entry || '(无 slash 入口，' + node.skill + ' 直接执行)'}`);
   lines.push('');
+
+  // [R2.4b 模块B] activate_external 字段：节点声明需激活的外部 skill（数据驱动，非节点 ID 特判）
+  // 延续 orchestrate 数据驱动模式（同 node.skill==='placeholder' 分支同构，读 node.activate_external 字段判）。
+  // N3.5 具体：activate_external=grill-me → 提示激活 grill-me 打磨 §3 功能需求清晰度/可验证性/边界完整，
+  //           禁问市场规模/用户画像/竞品，产出落盘 N3.5_grill_log.md（追问数 ≥ N + 修订点，主题2 落盘契约）。
+  // 通用性：读 node.activate_external，非硬编码 currentNode==='N3.5'（boss 可对任意节点加此字段）。
+  if (node.activate_external) {
+    lines.push(`## ⚠️ 必须激活的外部 skill`);
+    lines.push(`- 外部 skill: ${node.activate_external}`);
+    lines.push(`- 理由: 本节点 design（工程需求规格 §3 功能需求）需经 ${node.activate_external} 打磨清晰度/可验证性/边界完整`);
+    lines.push(`- 激活方式: 显式 /grilling（${node.activate_external} 的 disable-model-invocation=true，不会自动触发）`);
+    lines.push(`- 追问靶子: §3 每条 R{n} 的无歧义/可验证性/边界完整；§3 R{n} 触发条件 ∈ §2 in-scope`);
+    lines.push(`- 禁问: 市场规模/用户画像/竞品`);
+    lines.push(`- 落盘: N3.5_grill_log.md（含追问数 ≥ N + 每条对应 §3/§2 修订点）`);
+    lines.push('');
+  }
+
   lines.push(`## 完成判据（exit_condition，引擎不校验，由你/boss 对照）`);
   lines.push(`- ${node.exit_condition}`);
   lines.push('');

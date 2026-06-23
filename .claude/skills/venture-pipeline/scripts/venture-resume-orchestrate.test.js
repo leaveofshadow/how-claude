@@ -201,6 +201,11 @@ function testHGEdgeN35() {
     assert(out.includes('当前节点：N3.5'), `stdout 含 "当前节点：N3.5"`);
     // HG 出边分支不该提示 set-signal N3.5:N4（signal 是死字段）
     assert(!out.includes('set-signal --edge N3.5:N4'), `HG 分支不含 "set-signal --edge N3.5:N4"（HG edge signal 死字段，R3）`);
+    // [R2.4d 模块B] activate_external 回归断言：N3.5 节点 activate_external=grill-me 字段生效，orchestrate 生成的提示含 grill-me 激活指令。
+    // 验证 venture-resume.js R2.4b 新增段（数据驱动读 node.activate_external）正确输出，非节点 ID 特判。
+    assert(out.includes('必须激活的外部 skill'), `stdout 含 "必须激活的外部 skill"（R2.4b activate_external 段标题）`);
+    assert(out.includes('grill-me'), `stdout 含 "grill-me"（N3.5 activate_external 字段值注入提示）`);
+    assert(out.includes('N3.5_grill_log'), `stdout 含 "N3.5_grill_log"（落盘契约文案，主题2）`);
   } finally { cleanup(tmpBase); }
 }
 

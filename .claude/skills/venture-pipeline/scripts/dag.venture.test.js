@@ -4,7 +4,7 @@
  *
  * 纯拓扑结构断言（不跑引擎）：读 dag.venture.json 验证
  *   - 9 节点拓扑（M1 插 N3.5 需求规格）+ 主线 N1/N2/N3/N3.5 真 skill 名 + N4-N8 占位
- *   - exit_condition 含可证伪关键词（市场痛点 / 直接替代 / 七维评分 / PRD 五块）
+ *   - exit_condition 含可证伪关键词（市场痛点 / 直接替代 / 七维评分 / 工程六块 §3 功能需求/§5 验收/N3.5_grill_log）
  *   - M1 拓扑变更：N3→N4(HG1) 拆为 N3→N3.5(普通段) + N3.5→N4(HG1)，与 N1→N2 同构（铁证1）
  *   - R3 signal 语义（普通段 unknown / HG edge awaiting_human+gate）
  *   - R3 schema 注释三处一致（_comment 含 advance-node.js:294 + resolve-hg.js:101）
@@ -48,15 +48,23 @@ test('占位节点 N4-N8 skill=placeholder（C7）', () => {
   }
 });
 
-// ── exit_condition 含可证伪关键词（M1 加 N3.5 PRD 五块）──
+// ── exit_condition 含可证伪关键词（M1 加 N3.5，charter 块1 复审换为工程六块）──
 test('exit_condition 含可证伪关键词', () => {
   assert.ok(nodeById.N1.exit_condition.includes('市场痛点'), 'N1 含 市场痛点');
   assert.ok(nodeById.N2.exit_condition.includes('直接替代'), 'N2 含 直接替代');
   assert.ok(nodeById.N3.exit_condition.includes('七维评分'), 'N3 含 七维评分');
-  // N3.5 PRD 五块关键词（M1，可证伪：fs.existsSync + 五关键词 includes）
-  assert.ok(nodeById['N3.5'].exit_condition.includes('PRD 五块关键词'), 'N3.5 含 PRD 五块关键词');
-  assert.ok(nodeById['N3.5'].exit_condition.includes('背景介绍'), 'N3.5 含 背景介绍');
-  assert.ok(nodeById['N3.5'].exit_condition.includes('里程碑规划'), 'N3.5 含 里程碑规划');
+  // N3.5 工程六块关键词（charter 块1 复审，主题4/9：从旧 PRD 五块换为工程六块，与 dag.json 一致）
+  // 引擎层断言（主题4 分层）：只校验 existsSync+includes 能跑的；语义校验（R/AC 正文非空/EARS/追问数）放 SKILL.md 自检清单。
+  assert.ok(nodeById['N3.5'].exit_condition.includes('§3 功能需求'), 'N3.5 含 §3 功能需求（工程六块，charter 块1 复审）');
+  assert.ok(nodeById['N3.5'].exit_condition.includes('§5 验收'), 'N3.5 含 §5 验收（工程六块，charter 块1 复审）');
+  assert.ok(nodeById['N3.5'].exit_condition.includes('N3.5_grill_log'), 'N3.5 含 N3.5_grill_log（grill-me 落盘契约，主题2）');
+});
+
+// ── activate_external schema 断言（主题5：防 boss 手改静默失效）──
+// N3.5 节点声明 activate_external='grill-me'，dag.test.js 断言该字段结构（boss 手改破坏会被测试拦截）。
+test('N3.5 activate_external === grill-me（主题5 schema 断言，防静默失效）', () => {
+  assert.ok(nodeById['N3.5'].hasOwnProperty('activate_external'), 'N3.5 有 activate_external 字段（schema 隔离）');
+  assert.strictEqual(nodeById['N3.5'].activate_external, 'grill-me', 'N3.5.activate_external === "grill-me"（boss 手改破坏会被此断言拦截）');
 });
 
 // ── R3：所有普通段 edge（awaiting_human=false）signal=unknown ──
