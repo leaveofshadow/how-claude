@@ -67,6 +67,13 @@ test('N3.5 activate_external === grill-me（主题5 schema 断言，防静默失
   assert.strictEqual(nodeById['N3.5'].activate_external, 'grill-me', 'N3.5.activate_external === "grill-me"（boss 手改破坏会被此断言拦截）');
 });
 
+// ── grill_min_questions schema 断言（P1.1 堵 MAJOR 1.2：grill N 落地，防静默失效）──
+// N3.5 节点声明 grill_min_questions=3，validate-n35.js 默认追问数下限读此值（MAJOR 1.2「N 未定义」的契约落点）。
+test('N3.5 grill_min_questions === 3（P1.1 MAJOR 1.2 契约落点，防静默失效）', () => {
+  assert.ok(nodeById['N3.5'].hasOwnProperty('grill_min_questions'), 'N3.5 有 grill_min_questions 字段（MAJOR 1.2 落地）');
+  assert.strictEqual(nodeById['N3.5'].grill_min_questions, 3, 'N3.5.grill_min_questions === 3（validate-n35.js 默认追问数下限）');
+});
+
 // ── R3：所有普通段 edge（awaiting_human=false）signal=unknown ──
 test('普通段 edge signal=unknown（R3：逼 agent 走 set-signal 改 green）', () => {
   const normal = dag.edges.filter((e) => e.condition.awaiting_human === false);

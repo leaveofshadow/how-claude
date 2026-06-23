@@ -199,7 +199,10 @@ grill-me `disable-model-invocation: true`（不靠模型自动触发，必须显
 
 ## 4. 六闸自检清单（主题1 语义升级 + 主题4 分层）
 
-> **分层契约（主题4 核心）**：闸是**文档契约 + agent 自检责任**，**不是引擎执行**。引擎层（exit_condition）只跑 existsSync + includes（产物路径 + 关键词），语义校验（R/AC 正文非空/EARS/判据/追问数）在本清单 agent 自检执行 + 人工 M2 完确认点把关。
+> **分层契约（主题4 核心 + P1.1 自动化补强）**：闸分三层——
+> 1. **引擎层**（dag N3.5 exit_condition）：只跑 existsSync + includes（产物路径 + 关键词）。
+> 2. **自动化语义层**（P1.1 新增，堵 MAJOR 1.1+1.2）：`scripts/validate-n35.js` 把六闸（闸A-F + grill 追问数）从"agent 自检清单"升级为【可执行闸】——读 N3.5 产物跑正则校验，合格 exit 0 / 残缺 exit 1 精确指认失败闸。堵 MAJOR 1.1（空壳六块骗过引擎 existsSync+includes）+ MAJOR 1.2（grill N 落地 `dag N3.5.grill_min_questions=3`，脚本默认追问数下限读此值）。调用：`node scripts/validate-n35.js --prd <N3.5_需求规格_prd.md> --grill <N3.5_grill_log.md> [--min-questions N]`。
+> 3. **agent 自检 + M2 人工闸**：仍保留——语义之外的类型裁剪弹性 / 质量判断 / EARS 恰当性（自动化闸校验"五种 EARS 全出现"，但哪条 R 用哪种句式最恰当由 agent + M2 判断，非脚本能裁决）。
 
 agent 完成六块产出后，**逐闸自检**（语义层，agent 执行非引擎执行）：
 

@@ -27,6 +27,7 @@
       "type": "task",
       "skill": "venture-product-requirement",
       "activate_external": "grill-me",
+      "grill_min_questions": 3,
       "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含工程六块关键词（§3 功能需求 / §5 验收）（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；+ grill-me 落盘 artifact .hcc/product/venture-product-requirement/N3.5_grill_log.md 存在（追问数≥N 语义校验放 SKILL.md 自检清单，引擎层只 existsSync，主题4 分层）；venture-product-requirement 激活 grill-me 打磨 §3 清晰度/可验证性/边界（禁问市场/画像/竞品）；可证伪：fs.existsSync×2 + 关键词 includes（§3 功能需求/§5 验收/N3.5_grill_log）⚠️ by-design（cc-2pp charter 块4 路径正规化示范）：此节点产物路径用 .hcc/product/ 而非惯例 .venture/artifacts/，是有意设计——① 引擎不校验 exit_condition 路径（铁证3，只 existsSync 产物路径）；② N3.5 唯一出边 N3.5→N4 是 HG edge（awaiting_human:true），orchestrate 走 resolve-hg 分支（venture-resume.js:325）不读 artifact，故 extractArtifact 正则不匹配 .hcc/product/ 对本节点零影响。非 bug，勿统一改回 .venture/artifacts/（会破坏 M2/M3/M4 charter 一致性）。"
     },
     {
