@@ -41,7 +41,10 @@ trigger: hcc-sales/销售部/画像/市场验证
 
 - **cc-loop**（循环方法论）：已在工具箱 ✓ —— plan/review 回环。
 
-**[层3 待装配]**：venture-sales-judge（系统级 installed skill，创业评估师）—— N1 调查 / N2 竞品 / N6 画像的创业评估能力，层3 cc-venture 装配承接；销售技能（画像/收益转化/市场验证）层3 新建（charter L80 真空）。00-explore §四销售部 ❌ 真空。
+**[层3 已装配]**：
+- **venture-sales-judge**（创业评估师，系统级 installed）：✓ 装配承接（M4）—— N1 调查 / N2 竞品 / N6 画像；**N1/N2 落盘契约**：进 N1/N2 节点时增量落盘结构化 report 到 `.hcc/sales/venture-sales-judge/N{1,2}_*_report.md`（详见 venture-sales-judge §pipeline 段，R4.2）。
+
+**[层3 待装配]**：venture-sales-scale（N8 规模化，收益转化 / 市场规模化）—— 层3 cc-venture 新建（charter L80 真空）。00-explore §四销售部 ❌ 真空。
 
 ## §6 trigger
 

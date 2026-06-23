@@ -1,7 +1,7 @@
 ---
 name: hcc-org
 description: 组织层·协议宪法（5 部门协作总则 + RACI 总表 + 交接协议）
-protocol_version: "D10-2026-06-17"
+protocol_version: "D11-2026-06-22"
 trigger: hcc-org/部门协作/部门交接
 ---
 
@@ -11,7 +11,7 @@ trigger: hcc-org/部门协作/部门交接
 >
 > **实施者 = Claude Code + 已装载 skills**。5 部门皆由 Claude 分饰（charter「单 Claude」部署约束），部门协作成本按 token / 上下文轮次 / 文件交接开销度量（C-2：禁人天隐喻）。
 >
-> **触发协议版本**：`protocol_version: "D10-2026-06-17"` 供层2 pipeline-state.js 的 cmdInit 读取（M2 R2.1），记录到 `pipeline-state.protocol_version_read` 字段，闭合「部门激活时协议是否被读了」的可证伪闸（50-decision §八 [B-2/C-4] 修复）。
+> **触发协议版本**：`protocol_version: "D11-2026-06-22"` 供层2 pipeline-state.js 的 cmdInit 读取（M2 R2.1），记录到 `pipeline-state.protocol_version_read` 字段，闭合「部门激活时协议是否被读了」的可证伪闸（50-decision §八 [B-2/C-4] 修复）。
 
 ---
 
@@ -79,6 +79,7 @@ trigger: hcc-org/部门协作/部门交接
 | **N1 启动** | 机会启动 / 方向锚定 | C | I | I | C | **R** |
 | **N2 机会识别** | 调研 / 竞品分析 | C | I | I | I | **R** |
 | **N3 方案** | 计划起草（判官小组） | **R/A** | C | C | I | C |
+| **N3.5 需求规格** | PRD 产出（venture-product-requirement 激活） | **A** | **R** | C | I | C |
 | **HG1** | 方案→原型 boss 决策闸 | **A** | C | I | I | C |
 | **N4 原型** | 按方案实施原型 | **A** | C | **R** | I | I |
 | **HG2** | 原型→验证 boss 决策闸 | **A** | C | I | I | C |
@@ -256,4 +257,4 @@ trigger: hcc-org/部门协作/部门交接
 
 ---
 
-> **hcc-org/SKILL.md 完。** 6 段：§0 初始化自检 + §1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射。protocol_version: "D10-2026-06-17" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 state 写者函数调用（§4 纯引用验证）；§0 自检脚本写 .hcc/ops/（非层1 state）。
+> **hcc-org/SKILL.md 完。** 6 段：§0 初始化自检 + §1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射。protocol_version: "D11-2026-06-22" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 state 写者函数调用（§4 纯引用验证）；§0 自检脚本写 .hcc/ops/（非层1 state）。

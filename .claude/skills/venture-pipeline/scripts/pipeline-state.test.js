@@ -181,7 +181,7 @@ function testProtocolVersionRead() {
     fs.writeFileSync(skillFixture, [
       '---',
       'name: hcc-org',
-      'protocol_version: "D10-2026-06-17"',
+      'protocol_version: "D11-2026-06-22"',
       '---',
       '# hcc-org fixture',
       '',
@@ -191,8 +191,8 @@ function testProtocolVersionRead() {
     assert(r.status === 0, `init exit 0（实际 ${r.status}；stderr=${JSON.stringify(r.stderr)}）`);
 
     const s = readJSON(path.join(stateRoot, 'pipeline-state.json'));
-    assert(s.protocol_version_read === 'D10-2026-06-17',
-      `protocol_version_read === "D10-2026-06-17"（实际 ${JSON.stringify(s.protocol_version_read)}）`);
+    assert(s.protocol_version_read === 'D11-2026-06-22',
+      `protocol_version_read === "D11-2026-06-22"（实际 ${JSON.stringify(s.protocol_version_read)}）`);
   } finally {
     cleanup(tmpBase);
   }

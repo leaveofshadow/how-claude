@@ -35,8 +35,8 @@ const DEPTS = ['hcc-decision', 'hcc-product', 'hcc-dev', 'hcc-ops', 'hcc-sales']
 const VALID_RACI = ['R', 'A', 'C', 'I'];
 // 销售自治节点：A 由 §2.1「无 A 行→决策部临时 A」兜底规则接管，表格不显式标 A
 const SALES_AUTONOMOUS = new Set(['N1', 'N2', 'N8']);
-// §2.1 节点行表业务行数（N1-N8 + HG1/HG2）
-const EXPECTED_NODE_ROWS = 10;
+// §2.1 节点行表业务行数（N1-N8 + N3.5 + HG1/HG2；N3.5 需求规格行由 M7 R7.1 插入）
+const EXPECTED_NODE_ROWS = 11;
 
 // ── 辅助：递归收集目录下所有文件（C2：纯 fs.readdirSync，无外部 walk 库）──
 function walkDir(dir) {
@@ -150,6 +150,11 @@ function testNoStateWriterDuplication() {
     // 测试④ 的本意是「hcc-org 协议文档（SKILL.md + references）不复制 state writer 函数逻辑」，
     // 测试文件是验证工具，不在协议文档范畴。此排除修正自指假阳性，非放水。
     if (path.resolve(f) === path.resolve(__filename)) continue;
+    // 排除 scripts/ 工具脚本（M6 hcc-preflight.js 等）：工具实现写自己的产物
+    // （如 preflight 写 env-scan.json 报告，非 pipeline-state），非协议文档复制 state writer。
+    // 纯引用约束（[A-5/B-4]）针对协议文档（SKILL.md + references/*.md），非工具脚本。
+    const rel = path.relative(HCC_ORG_DIR, f);
+    if (rel.startsWith('scripts' + path.sep)) continue;
     const content = fs.readFileSync(f, 'utf8');
     assert(!FORBIDDEN.test(content),
       `${path.relative(SKILL_ROOT, f)} 无 state writer 函数名复制（[A-5/B-4] 纯引用，真理源在 schema 文档）`);
