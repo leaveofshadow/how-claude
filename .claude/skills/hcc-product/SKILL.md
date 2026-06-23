@@ -35,6 +35,17 @@ trigger: hcc-product/产品部/产品设计/需求挖掘
 
 参见 hcc-org/SKILL.md §2 RACI 总表（产品部行）。产品部对 state 字段只读（运维部 owns 写，hcc-org §4.3）；产品部产出落盘 artifacts（product-*.md，hcc-org §3.1）供开发部实施 / 决策部 review 接力。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
 
+### §4.1 N5 验证对照基准（产品部被动 review，R3.2）
+
+N5 验证节点产品部被动 review 开发部（hcc-dev）实施是否走偏需求基线：
+
+- **对照基准** = `N3.5_需求规格_prd.md` 的 **§5 验收标准 AC{n}** + **§3 功能需求条目 ID R{n}**（条目化、可寻址），**非整份 PRD 自然语言文本对照**。
+- **机制（保留）**：`git diff` 检测 N4 实施代码 vs 基线期望的走偏——机制不变（git diff + 走偏判定），仅把对照粒度从"PRD 基线整体"收敛到"§5 AC{n} + §3 R{n} 条目"。
+- **走偏判定**：某 AC{n} 绑定的可执行验证命令（见 venture-product-requirement §5，主题6 N5 验证映射）在 N5 跑挂 → 标记对应 R{n} 走偏 → 开发部走变更流程（`N3.5_需求变更_request.md`）→ 产品部评审 append（`N3.5_需求变更_changelog.md`）。
+- **N5 验证范式（主题6）**：N5 = 跑 AC 绑定的验证命令，**不是 git diff 文本语义对照**（AC 已工程化为可执行判据，文本对照无机器映射）。M5/M6 建立 AC↔验证命令映射表真正消费。
+
+> 条目工程化（R{n}↔AC{n} 一一对应）使 N5 走偏判定可定位到具体需求条目，而非模糊"偏离设计意图"。
+
 ## §5 业务能力
 
 参见 hcc-org/SKILL.md §5 工具箱映射表（产品部行）。
