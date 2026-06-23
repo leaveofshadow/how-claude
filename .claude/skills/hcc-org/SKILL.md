@@ -164,6 +164,37 @@ trigger: hcc-org/部门协作/部门交接
 2. **handoff pair 不灌完整 trace**：交接文件只含「触发消息 + 确认消息 + 关键 learnings summarize」，**不复制完整 trace.ndjson**（00-explore §6.3 LangChain 教训：灌完整历史致 bloat + 干扰接收部门）。需更多上下文 → 交接文件里 summarize，接收部门按需 Read trace 特定行（带 node/iter/direction_version 过滤）。
 3. **state 字段交接经脚本/Hook**：部门不直接读写 state 文件，而是经层1 Hook（H2 PostToolUse 写 trace/tasks）+ 层2 脚本（advance-node 推进 current_node）间接交换。部门 plan/review 产出落盘 artifacts，state 字段由运维部 owns 的脚本/Hook 维护（总则4 + §4 纯引用）。
 
+### 3.3 .hcc 产物目录体系（charter 块4，层3 统一落盘规范）
+
+> **并行关系**（charter L122）：层3 新产物按 `.hcc/` 三层路径落盘（本段）；层1 runtime 数据仍落 `.venture/`、决策文档落 `.2pp/`（不跨项目迁）。`.hcc/` 入库做基线，`.venture/`+`.2pp/` gitignore（业务产物入库，运行态/决策沙箱不入库）。
+
+**路径模板**：`.hcc/{部门}/{venture业务skill}/{phase}_{feature}_{type}.md`
+- **部门** = decision / product / dev / ops / sales（与 §2 RACI 五部门对齐）
+- **agent 层** = 产出该 artifact 的 venture 业务 skill（`venture-{部门}-{维度}` 命名规范，charter L128-135）
+- **命名** = `{phase=N1-N8|N3.5}_{feature}_{type}`
+- **type 枚举** = prd / spec / decision / plan / architecture / report / changelog
+
+**节点→部门→skill→type 映射**（charter 块4 L103-114，全节点 N1-N8+N3.5）：
+
+| 节点 | 部门 | agent（venture skill） | type | 文件 |
+|------|------|------------------------|------|------|
+| N1 机会调查 | sales | venture-sales-judge | report | `N1_机会调查_report.md` |
+| N2 竞品 | sales | venture-sales-judge | report | `N2_竞品_report.md` |
+| N3 决策方案 | decision | hcc-decision（引用 cc-2pp） | decision | `N3_决策方案_decision.md` |
+| **N3.5 需求规格** | **product** | **venture-product-requirement** | **prd** | `N3.5_需求规格_prd.md` |
+| (变更日志) | product | venture-product-requirement | changelog | `N3.5_需求变更_changelog.md` |
+| N4 原型 | dev | hcc-dev（引用 executor/superpowers） | plan | `N4_原型_plan.md` |
+| N5 验证 | product | venture-product | decision | `N5_验证_decision.md` |
+| N6 产品化 | product | venture-product | spec | `N6_产品化_spec.md` |
+| N7 迭代优化 | product | venture-product-uiux | spec | `N7_迭代优化-uiux_spec.md` |
+| N8 规模化 | sales | venture-sales-scale | plan | `N8_规模化_plan.md` |
+
+> **agent 层前缀混合**（charter L116 (b) Boss 定）：`venture-*`（product 三件 + sales judge/scale）+ `hcc-*`（decision/dev）。decision/dev 无 venture 业务 skill = 设计正确（这两个部门本质「引用外部生态」，非缺口），不补自建方法论。
+
+**写者归属**（C1，charter L124）：各 artifact 由对应 venture skill 经 venture 流程写；引擎（venture-pipeline）只推进节点（advance-node/resolve-hg 写 state），不直写 artifact。
+
+> **可证伪闸**（R4.1）：grep `.hcc/{部门}` ≥1；grep `N3.5.*venture-product-requirement.*prd` ≥1（映射表 N3.5 行）。
+
 ---
 
 ## §4 state 字段 RACI 引用（纯引用，[A-5/B-4] 修复）
