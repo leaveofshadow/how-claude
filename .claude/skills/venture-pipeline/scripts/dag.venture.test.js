@@ -41,11 +41,13 @@ test('主线 N1/N2/N3/N3.5 真 skill 名', () => {
   assert.strictEqual(nodeById['N3.5'].skill, 'venture-product-requirement', 'N3.5 需求规格 skill（M1 插入）');
 });
 
-// ── 占位节点 N4-N8 skill=placeholder（C7：拓扑运行 ≠ 业务运行）──
-test('占位节点 N4-N8 skill=placeholder（C7）', () => {
-  for (const id of ['N4', 'N5', 'N6', 'N7', 'N8']) {
+// ── 占位节点 N4/N5/N6/N8 skill=placeholder（C7：拓扑运行 ≠ 业务运行）+ N7 装配 venture-product-uiux ──
+test('占位节点 N4/N5/N6/N8 skill=placeholder（C7）+ N7 装配 venture-product-uiux', () => {
+  for (const id of ['N4', 'N5', 'N6', 'N8']) {
     assert.strictEqual(nodeById[id].skill, 'placeholder', `${id}.skill === placeholder`);
   }
+  // N7 装配 venture-product-uiux（hcc-org §3.3 N7 产物归属；2026-06-24 装配，非占位）
+  assert.strictEqual(nodeById.N7.skill, 'venture-product-uiux', 'N7.skill === venture-product-uiux（已装配）');
 });
 
 // ── exit_condition 含可证伪关键词（M1 加 N3.5，charter 块1 复审换为工程六块）──

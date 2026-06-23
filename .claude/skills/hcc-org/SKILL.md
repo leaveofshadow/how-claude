@@ -279,7 +279,7 @@ trigger: hcc-org/部门协作/部门交接
 charter block1 自身 = 用 hcc 框架产出的 **PoC 档**实例（业务实装验证框架）：
 
 - **引擎层**（19 skill：cc-runtime / venture-pipeline / hcc-org / hcc-* / venture-product-requirement）：`project` 位置，git 入库 ✅ 天然可移植
-- **业务实装**（venture-product-uiux 落 `E:\tmp\hcc\`）：`sandbox` ✅ PoC 档可接受（升级 MVP 时迁回 project）
+- **业务实装**（venture-product-uiux 已迁主项目 `.claude/skills/` + N7.skill 装配）：`project` ✅（2026-06-24 从 sandbox `E:\tmp\hcc\` 迁回，PoC 档 project 位置合规；反幻觉同步契约与实际位置）
 - **外部依赖**（venture-sales-judge / grill-me / bergside）：`user` ✅ PoC 档可接受（preflight warn 不阻断 N3.5 主闭环）
 
 > **升级触发**：产出项目 §2 类型声明从 PoC → MVP / 生产级时，按矩阵触发部署升级——sandbox 业务实装迁回 project；user 依赖补可复现 install 脚本；生产级再补迁移 SOP + 配置外置。这是**项目方的职责**，非框架自动完成。

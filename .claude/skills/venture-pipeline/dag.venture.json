@@ -51,8 +51,8 @@
     {
       "id": "N7",
       "type": "task",
-      "skill": "placeholder",
-      "exit_condition": "迭代优化完成（最小闭环外，N6⇄N7 loop_back max_iter=3 收敛，占位，C7）"
+      "skill": "venture-product-uiux",
+      "exit_condition": "artifact .hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md 存在且含 Bergside Quality gates 可证伪验收关键词（点击数/完成率/WCAG 对比度对比基线，禁'更好看'式不可证伪）；venture-product-uiux 引 bergside 67 slug 按 §4 映射表按需 pull（bergside-type-ui optional，preflight 告警级不阻断）支撑 N7 迭代优化 UIUX 维度（N6⇄N7 loop_back max_iter=3 收敛）；可证伪：fs.existsSync + 关键词 includes（Bergside Quality gates）"
     },
     {
       "id": "N8",
