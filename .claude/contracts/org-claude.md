@@ -81,12 +81,12 @@ Claude 实施者的 **token ROI 不好估**：
 | 下游 skill | 原内联位置 | 引用本契约锚 |
 |-----------|-----------|-------------|
 | cc-2pp/SKILL.md | L122 token ROI 段 | `#token-roi` |
-| cc-2pp/SKILL.md | L138-143 实施者认知锚定 | `#cognitive-anchor` |
-| cc-2pp/SKILL.md | L154-159 Claude 度量 | `#measure` |
+| cc-2pp/SKILL.md | L142-146 实施者认知锚定判定（定义已抽 `_roles/injection-template.md`） | `#cognitive-anchor` |
+| cc-2pp/SKILL.md | L36/L151 Claude 度量（定义已抽 `_roles/injection-template.md`） | `#measure` |
 | hcc-org/SKILL.md | L12 实施者锚定 + C-2 | `#cognitive-anchor` + `#measure` |
 | venture-product-requirement/SKILL.md | L254 token ROI | `#token-roi` |
 | venture-product-requirement/SKILL.md | L266-269 度量口径 | `#measure` |
-| cc-2pp/references/2pp-guide.md | L30/53/122/811 token ROI 降级（见假设5） | `#token-roi` |
+| cc-2pp/references/2pp-guide.md | L30/53/122/648 token ROI 降级（见假设5） | `#token-roi` |
 
 > 改造原则：下游保留**判定/触发逻辑**（何时引用、违反信号→扣分），只把**契约定义**改为引用本文件。判定逻辑不可移走（cc-2pp F2 修复原则：契约只放定义，判定留调用方）。
 
