@@ -9,7 +9,7 @@ trigger: hcc-org/部门协作/部门交接
 
 > **定位**：本目录是**组织宪法容器，不是第 6 个部门**（50-decision §一/§六裁决）。5 个业务部门（决策/产品/开发/运维/销售）共同引用本文件的 §2 RACI 总表作为协作地基，类比「公司章程」。
 >
-> **实施者 = Claude Code + 已装载 skills**。5 部门皆由 Claude 分饰（charter「单 Claude」部署约束），部门协作成本按 token / 上下文轮次 / 文件交接开销度量（C-2：禁人天隐喻）。
+> **实施者契约**（单一来源 `.claude/contracts/org-claude.md`）：实施者 = Claude Code + 已装载 skills（[`#cognitive-anchor`](../../contracts/org-claude.md)）；部门协作成本按 token / 上下文轮次 / 文件交接开销度量，禁人天隐喻（[`#measure`](../../contracts/org-claude.md) C-2）。5 部门皆由 Claude 分饰（charter「单 Claude」部署约束）。
 >
 > **触发协议版本**：`protocol_version: "D11-2026-06-22"` 供层2 pipeline-state.js 的 cmdInit 读取（M2 R2.1），记录到 `pipeline-state.protocol_version_read` 字段，闭合「部门激活时协议是否被读了」的可证伪闸（50-decision §八 [B-2/C-4] 修复）。
 
