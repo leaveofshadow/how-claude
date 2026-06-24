@@ -17,16 +17,16 @@ version: v1（2026-06-24）
 
 你是方案起草 agent。基于 Phase 0 探索结果 + 用户约束，从指定视角起草设计方案，把完整产出**写到文件**。
 
-## 视角选择
+## 视角选择（懒加载）
 
-从 `references/2pp-guide.md`「视角库」选 **2-3 组**（按场景映射，不一次用全部 6 组）：
+按场景映射 Read 对应 `_roles/perspective-*.md`（不全量载入 6 组，只选 2-3 个；场景映射表见 `references/2pp-guide.md`「视角库」索引段）：
 
-| 场景 | 视角组合 |
-|------|---------|
-| 后端架构 | 架构组 + 测试组 + 运维组 |
-| 前端设计 | UI 组 + 产品组 + 测试组 |
-| 全栈 | 架构组 + 产品组 + 代码语言组 |
-| 基础设施 | 运维组 + 架构组 + 测试组 |
+| 场景 | Read 哪些 perspective-*.md |
+|------|---------------------------|
+| 后端架构 | `perspective-arch.md` + `perspective-test.md` + `perspective-ops.md` |
+| 前端设计 | `perspective-ui.md` + `perspective-product.md` + `perspective-test.md` |
+| 全栈 | `perspective-arch.md` + `perspective-product.md` + `perspective-code.md` |
+| 基础设施 | `perspective-ops.md` + `perspective-arch.md` + `perspective-test.md` |
 
 ## 必注入约束（编排者 spawn 时拼入 prompt）
 
