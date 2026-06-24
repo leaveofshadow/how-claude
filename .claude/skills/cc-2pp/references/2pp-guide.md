@@ -218,19 +218,10 @@ web 搜索预算（护栏）: 最多 15 轮
 3. **实施计划**（60-impl-plan.md）— 技术选型(含三项好估维度) + 模块拆分 + 里程碑(含验收) + 所需skills + 执行编排(含worktree并发分配) + 执行协议(验证闸+提交回滚) + 风险 + 下一步
 4. **细化需求清单**（70-requirements.md）— 按里程碑拆需求项(做什么/输入/输出/可证伪验证/依赖/预估)，保姆级
 
-### agent prompt 末尾追加（替代旧 JSON 要求）
+### agent prompt 末尾追加（懒加载）
 
-```
-Prompt 末尾追加（仅创造类 agent: general-purpose/executor）:
-  "把完整产出写到文件 {路径}，必须包含以下章节:
-   {章节清单}
-   章节内自由发挥，不要只写'已完成'之类的空话。
-   ★ 先钉死认知: 实施者 = Claude + skills，评估的是"Claude 能不能落地"，不是"团队能不能排期"。
-   ★ 方案涉及 Claude Code 方法论（循环/终态/编排/配置）→ 先 Read 00-explore.md 定位的对应
-     cc-* 子技能深度参考补齐认知（不读 claude-coach 路由器）。
-   ★ 工作量按 Claude 实施者度量（token/轮次/skill配置/验证），禁用'人天/人周'。
-   写完文件后回复一句确认即可。"
-```
+> 末尾追加块（写文件+章节清单+认知锚定+度量）已合并进 `_roles/injection-template.md` 的「末尾追加块」段（单一来源，消除三处重复）。
+> 编排者 spawn 创造类 agent 时 Read `injection-template.md`，拼末尾追加块 + 必注入约束。
 
 **编排者校验**：读文件时检查必需章节是否齐全；缺失或空壳 → 触发 retry。
 

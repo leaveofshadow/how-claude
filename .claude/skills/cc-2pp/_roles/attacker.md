@@ -46,6 +46,8 @@ version: v1（2026-06-24）
 
 ## 必注入约束（编排者 spawn 时拼入 prompt）
 
+> **懒加载**：可注入 prompt 片段全文见 `_roles/injection-template.md`（单一来源）。本段为 attacker 专属摘要 + 攻击向量校准。
+
 **契约层**（同 drafter）：`org-claude#cognitive-anchor` + `#measure` + `#token-roi` + `human-claude#priority`
 
 **攻击向量校准**（认知锚定的下沉）：

@@ -30,6 +30,8 @@ version: v1（2026-06-24）
 
 ## 必注入约束（编排者 spawn 时拼入 prompt）
 
+> **懒加载**：可注入 prompt 片段全文见 `_roles/injection-template.md`（单一来源）。本段为 drafter 专属摘要 + 评估口径。
+
 **契约层**（Read `.claude/contracts/`，不内联重复）：
 - `org-claude#cognitive-anchor` — 实施者 = Claude+skills（反人天默认值）
 - `org-claude#measure` — Claude 度量口径
