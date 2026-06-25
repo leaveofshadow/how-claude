@@ -7,6 +7,11 @@
 .venture/
 # hcc-org 自检运行态产物（preflight 每次跑重生成，含机器特定用户级路径 + timestamp，不入库；业务产物 .hcc/{部门}/{venture}/*.md 仍入库做基线）
 .hcc/ops/hcc-org/
+# hcc 目录统一阶段2：runtime/决策/归档 gitignore（路径统一到 .hcc/，入库分层保留 charter L122 语义；层3产物 .hcc/{部门}/{skill}/ 仍入库）
+.hcc/state/
+.hcc/decisions/
+.hcc/artifacts/
+.hcc/archived/
 .claude/compact-snapshots/
 .venv/
 .venv-perf/
