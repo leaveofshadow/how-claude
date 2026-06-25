@@ -27,6 +27,31 @@ const { shiftDirection } = require('./shift-direction');
 const T1 = '2026-06-16T00:00:00.000Z';
 const T2 = '2026-06-16T05:00:00.000Z';
 
+// ── hcc 目录统一阶段2：resolveRoot 读双路径 fallback（subprocess cwd 隔离）──
+const { spawnSync } = require('child_process');
+
+test('S2：resolveRoot .hcc/state 存在优先', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'shift-fb-'));
+  try {
+    const SCRIPT = path.join(__dirname, 'shift-direction.js');
+    fs.mkdirSync(path.join(tmp, '.hcc', 'state'), { recursive: true });
+    fs.mkdirSync(path.join(tmp, '.venture', 'state'), { recursive: true });
+    const r = spawnSync('node', ['-e', `const m=require(${JSON.stringify(SCRIPT)}); console.log(m.resolveRoot(undefined));`], { cwd: tmp, encoding: 'utf8' });
+    assert.strictEqual(r.status, 0, `子进程失败：${r.stderr}`);
+    assert.ok(r.stdout.trim().includes('.hcc'), `应优先 .hcc/state，实际 ${r.stdout.trim()}`);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
+test('S2：resolveRoot .hcc/state 不存在 fallback .venture/state', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'shift-fb-'));
+  try {
+    const SCRIPT = path.join(__dirname, 'shift-direction.js');
+    fs.mkdirSync(path.join(tmp, '.venture', 'state'), { recursive: true });
+    const r = spawnSync('node', ['-e', `const m=require(${JSON.stringify(SCRIPT)}); console.log(m.resolveRoot(undefined));`], { cwd: tmp, encoding: 'utf8' });
+    assert.ok(r.stdout.trim().includes('.venture'), `应 fallback .venture/state，实际 ${r.stdout.trim()}`);
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
+
 // 构造临时项目：init-state 初始化四文件 + 可选地放 v1 产物（含子目录）
 function setupProject(withArtifacts) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'venture-shift-'));

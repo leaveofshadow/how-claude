@@ -46,6 +46,9 @@ function parseArgs(argv) {
 
 function resolveRoot(rootArg) {
   if (rootArg) return path.resolve(rootArg);
+  // hcc 目录统一阶段2：读双路径（.hcc/state 优先 + .venture/state fallback）
+  const hcc = path.resolve('.hcc', 'state');
+  if (fs.existsSync(hcc)) return hcc;
   return path.resolve('.venture', 'state');
 }
 
