@@ -5,7 +5,7 @@
  * 覆盖 70-requirements R2.1-R2.2：
  *   ① R2.1-验证1 orchestrate --help 含 --dag/--root（子命令注册）
  *   ② R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-sales-judge / 入口: /judge /
- *      set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md
+ *      set-signal --edge N1:N2 --signal green --artifact .hcc/sales/venture-sales-judge/N1_机会调查_report.md
  *   ③ R2.1-验证3 orchestrate 后 state 目录无新增文件（纯 stdout，不写文件——C1 写者隔离：orchestrate 非写者）
  *   ④ R2.1-验证4 grep venture-resume.js 全文件无 child_process/spawn/exec/vm/eval（C2 纯 Node，不 spawn skill）
  *   ⑤ R2.1-验证5 dag 漂移态（graph_hash 不匹配）orchestrate 不 exit 1（跳过 hash 比对——提示非续传）
@@ -115,7 +115,7 @@ function testHelp() {
 
 // ── Test 2 [R2.1-验证2 核心] N1 指令卡四串 ──
 function testN1InstructionCard() {
-  console.log('\n[Test 2] R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-sales-judge / 入口: /judge / set-signal ... N1-机会调查.md');
+  console.log('\n[Test 2] R2.1-验证2 N1 指令卡四串：当前节点：N1 / skill: venture-sales-judge / 入口: /judge / set-signal ... N1_机会调查_report.md');
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
     writeState(stateRoot, dagCopy, 'N1');
@@ -125,8 +125,8 @@ function testN1InstructionCard() {
     assert(out.includes('当前节点：N1'), `stdout 含 "当前节点：N1"`);
     assert(out.includes('skill: venture-sales-judge'), `stdout 含 "skill: venture-sales-judge"`);
     assert(out.includes('入口: /judge'), `stdout 含 "入口: /judge"（从 exit_condition 正则提取 "venture-sales-judge /judge"）`);
-    assert(out.includes('set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md'),
-      `stdout 含 set-signal --edge N1:N2 --signal green --artifact .venture/artifacts/N1-机会调查.md（逐字命令）`);
+    assert(out.includes('set-signal --edge N1:N2 --signal green --artifact .hcc/sales/venture-sales-judge/N1_机会调查_report.md'),
+      `stdout 含 set-signal --edge N1:N2 --signal green --artifact .hcc/sales/venture-sales-judge/N1_机会调查_report.md（逐字命令）`);
   } finally { cleanup(tmpBase); }
 }
 
@@ -212,10 +212,10 @@ function testHGEdgeN35() {
 // ── Test 8 [发现2 M1.5] N3 普通段出边 N3→N3.5 → set-signal（N3 artifact 路径提取专项断言）──
 // 发现2（M1.5）：Test 2 只测 N1 普通段 orchestrate，N3→N3.5 普通段（M1 拓扑变更新增）无专项断言。
 // 补 N3 专项断言：① 验证 M1 拓扑 N3→N3.5 普通段在 orchestrate 正确生成 set-signal green；
-//                 ② 验证 N3 的 artifact 路径 .venture/artifacts/N3-方案.md 被 extractArtifact 正确提取
-//                   （与 N3.5 的 .hcc/product/ by-design 形成对照——见 dag.venture.json N3.5 exit_condition 标注）。
+//                 ② 验证 N3 的 artifact 路径 .hcc/decision/hcc-decision/N3_决策方案_decision.md 被 extractArtifact 正确提取
+//                   （hcc 目录统一阶段1：所有节点统一 .hcc/{部门}/{skill}/，extractArtifact 双路径）。
 function testN3NormalEdgeOrchestrate() {
-  console.log('\n[Test 8] 发现2 M1.5：N3 普通段出边 N3→N3.5 → stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md');
+  console.log('\n[Test 8] 发现2 M1.5：N3 普通段出边 N3→N3.5 → stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .hcc/decision/hcc-decision/N3_决策方案_decision.md');
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
     writeState(stateRoot, dagCopy, 'N3');
@@ -224,8 +224,8 @@ function testN3NormalEdgeOrchestrate() {
     const out = r.stdout || '';
     assert(out.includes('当前节点：N3'), `stdout 含 "当前节点：N3"`);
     assert(out.includes('skill: hcc-decision'), `stdout 含 "skill: hcc-decision"（N3 skill）`);
-    assert(out.includes('set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md'),
-      `stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .venture/artifacts/N3-方案.md（M1 普通段 + N3 artifact 路径提取，对照 N3.5 .hcc/product/ by-design）`);
+    assert(out.includes('set-signal --edge N3:N3.5 --signal green --artifact .hcc/decision/hcc-decision/N3_决策方案_decision.md'),
+      `stdout 含 set-signal --edge N3:N3.5 --signal green --artifact .hcc/decision/hcc-decision/N3_决策方案_decision.md（M1 普通段 + N3 artifact 路径提取，hcc 目录统一阶段1）`);
   } finally { cleanup(tmpBase); }
 }
 
