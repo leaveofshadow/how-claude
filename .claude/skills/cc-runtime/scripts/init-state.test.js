@@ -41,6 +41,31 @@ const REQUIRED_CHECKPOINT_FIELDS = [
 ];
 const REQUIRED_GUARDRAILS = ['max_iteration', 'no_progress_streak', 'budget_tokens_used', 'budget_tokens_cap'];
 
+// ── hcc 目录统一阶段2：resolveRoot 写固定 .hcc/state + direction_path 动态化 ──
+const { spawnSync } = require('child_process');
+
+test('S2：resolveRoot 无 --root 落 .hcc/state（subprocess cwd 隔离）', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'init-fb-'));
+  try {
+    const SCRIPT = path.join(__dirname, 'init-state.js');
+    const r = spawnSync('node', ['-e', `const m=require(${JSON.stringify(SCRIPT)}); console.log(m.resolveRoot([]));`], { cwd: tmp, encoding: 'utf8' });
+    assert.strictEqual(r.status, 0, `子进程失败：${r.stderr}`);
+    assert.ok(r.stdout.trim().includes('.hcc'), `resolveRoot 无 --root 应落 .hcc/state，实际 ${r.stdout.trim()}`);
+  } finally { clean(tmp); }
+});
+
+test('S2：initState direction_path/trace_ref 跟随 root 动态化（含 .hcc/state）', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'init-fb-'));
+  try {
+    const hccRoot = path.join(tmp, '.hcc', 'state');
+    initState(hccRoot, { now: FIXED_NOW });
+    const cp = JSON.parse(fs.readFileSync(path.join(hccRoot, 'checkpoint.json'), 'utf8'));
+    assert.ok(cp.direction_path.includes('.hcc'), `direction_path 应跟随 root（含 .hcc），实际 ${cp.direction_path}`);
+    assert.ok(cp.trace_ref.includes('.hcc'), `trace_ref 应跟随 root（含 .hcc），实际 ${cp.trace_ref}`);
+    assert.ok(cp.direction_path.endsWith('direction.json'), `direction_path 应指向 direction.json`);
+  } finally { clean(tmp); }
+});
+
 // ── §1.1 四文件生成 🔴 ──
 test('§1.1 初始化生成全部四文件', () => {
   const root = tmpRoot();

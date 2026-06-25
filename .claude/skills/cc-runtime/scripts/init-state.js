@@ -24,7 +24,7 @@ const path = require('path');
 function resolveRoot(argv) {
   const idx = argv.indexOf('--root');
   if (idx !== -1 && argv[idx + 1]) return path.resolve(argv[idx + 1]);
-  return path.resolve('.venture', 'state');
+  return path.resolve('.hcc', 'state');  // hcc 目录统一阶段2：init 写固定新（新文件落新位置）
 }
 
 const FORCE = process.argv.includes('--force');
@@ -99,6 +99,11 @@ function initState(root, opts) {
 
   const isoNow = (opts && opts.now) || new Date().toISOString();
   const d = defaults(isoNow);
+
+  // hcc 目录统一阶段2：direction_path/trace_ref 跟随实际 stateRoot（相对 cwd，原 defaults 硬编码 .venture/state）
+  const stateRel = path.relative(process.cwd(), root) || '.';
+  d.checkpoint.direction_path = path.join(stateRel, 'direction.json');
+  d.checkpoint.trace_ref = path.join(stateRel, 'trace.ndjson');
 
   // 各文件的写入器
   const writers = {
