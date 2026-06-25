@@ -45,9 +45,17 @@ function parseArgs(argv) {
   return opts;
 }
 
-// 状态根：缺省 <cwd>/.venture/state（与 shift-direction.js / init-state.js 一致）
+// 状态根双语义（hcc 目录统一阶段2）：
+//   resolveStateRoot（写/init）：固定 .hcc/state（新文件落新位置，达成统一）
+//   resolveStateRootForRead（读/改）：.hcc/state 优先 + .venture/state fallback（兼容旧）
 function resolveStateRoot(rootArg) {
   if (rootArg) return path.resolve(rootArg);
+  return path.resolve('.hcc', 'state');
+}
+function resolveStateRootForRead(rootArg) {
+  if (rootArg) return path.resolve(rootArg);
+  const hcc = path.resolve('.hcc', 'state');
+  if (fs.existsSync(hcc)) return hcc;
   return path.resolve('.venture', 'state');
 }
 
@@ -155,7 +163,7 @@ function cmdInit(opts) {
 // ── read 子命令 ──
 // 读当前 pipeline-state.json 输出 JSON（不存在 exit 1）
 function cmdRead(opts) {
-  const stateRoot = resolveStateRoot(opts.root);
+  const stateRoot = resolveStateRootForRead(opts.root);
   const state = readPipelineState(stateRoot);
   if (!state) {
     throw new Error(`pipeline-state.json 不存在：${stateFilePath(stateRoot)}（请先 node pipeline-state.js init）`);
@@ -175,7 +183,7 @@ function cmdSetHg(opts) {
     throw new Error(`--gate 仅接受 HG1|HG2（实际 ${gate}）`);
   }
 
-  const stateRoot = resolveStateRoot(opts.root);
+  const stateRoot = resolveStateRootForRead(opts.root);
   const old = readPipelineState(stateRoot);
   if (!old) {
     throw new Error(`pipeline-state.json 不存在：${stateFilePath(stateRoot)}（请先 node pipeline-state.js init）`);
@@ -210,7 +218,7 @@ function cmdSetHg(opts) {
 // ── verify 子命令（R1.4，C6 防静默漂移）──
 // 重算当前 dag.json 的 graph_hash，与 pipeline-state.graph_hash 比对。
 function cmdVerify(opts) {
-  const stateRoot = resolveStateRoot(opts.root);
+  const stateRoot = resolveStateRootForRead(opts.root);
   const dagPath = resolveDagPath(opts.dag);
   const state = readPipelineState(stateRoot);
   if (!state) {
@@ -275,6 +283,7 @@ if (require.main === module) {
 module.exports = {
   parseArgs,
   resolveStateRoot,
+  resolveStateRootForRead,
   resolveDagPath,
   cmdInit,
   cmdRead,
