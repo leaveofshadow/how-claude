@@ -8,19 +8,19 @@
       "id": "N1",
       "type": "task",
       "skill": "venture-sales-judge",
-      "exit_condition": "artifact .venture/artifacts/N1-机会调查.md 存在且含关键词 市场痛点（venture-sales-judge /judge 阶段一机会调查产出；可证伪：fs.existsSync + 关键词 includes）"
+      "exit_condition": "artifact .hcc/sales/venture-sales-judge/N1_机会调查_report.md 存在且含关键词 市场痛点（venture-sales-judge /judge 阶段一机会调查产出；可证伪：fs.existsSync + 关键词 includes）"
     },
     {
       "id": "N2",
       "type": "task",
       "skill": "venture-sales-judge",
-      "exit_condition": "artifact .venture/artifacts/N2-竞品.md 存在且含关键词 直接替代（venture-sales-judge /compete 竞争分析产出；可证伪：fs.existsSync + 关键词 includes）"
+      "exit_condition": "artifact .hcc/sales/venture-sales-judge/N2_竞品_report.md 存在且含关键词 直接替代（venture-sales-judge /compete 竞争分析产出；可证伪：fs.existsSync + 关键词 includes）"
     },
     {
       "id": "N3",
       "type": "task",
       "skill": "hcc-decision",
-      "exit_condition": "artifact .venture/artifacts/N3-方案.md 存在且含关键词 七维评分（hcc-decision 调用 venture-sales-judge 七维框架对方案评分后拍板；可证伪：fs.existsSync + 关键词 includes）"
+      "exit_condition": "artifact .hcc/decision/hcc-decision/N3_决策方案_decision.md 存在且含关键词 七维评分（hcc-decision 调用 venture-sales-judge 七维框架对方案评分后拍板；可证伪：fs.existsSync + 关键词 includes）"
     },
     {
       "id": "N3.5",
@@ -28,7 +28,7 @@
       "skill": "venture-product-requirement",
       "activate_external": "grill-me",
       "grill_min_questions": 3,
-      "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含工程六块关键词（§3 功能需求 / §5 验收）（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；+ grill-me 落盘 artifact .hcc/product/venture-product-requirement/N3.5_grill_log.md 存在（追问数≥N 语义校验放 SKILL.md 自检清单，引擎层只 existsSync，主题4 分层）；venture-product-requirement 激活 grill-me 打磨 §3 清晰度/可验证性/边界（禁问市场/画像/竞品）；可证伪：fs.existsSync×2 + 关键词 includes（§3 功能需求/§5 验收/N3.5_grill_log）⚠️ by-design（cc-2pp charter 块4 路径正规化示范）：此节点产物路径用 .hcc/product/ 而非惯例 .venture/artifacts/，是有意设计——① 引擎不校验 exit_condition 路径（铁证3，只 existsSync 产物路径）；② N3.5 唯一出边 N3.5→N4 是 HG edge（awaiting_human:true），orchestrate 走 resolve-hg 分支（venture-resume.js:325）不读 artifact，故 extractArtifact 正则不匹配 .hcc/product/ 对本节点零影响。非 bug，勿统一改回 .venture/artifacts/（会破坏 M2/M3/M4 charter 一致性）。"
+      "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含工程六块关键词（§3 功能需求 / §5 验收）（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；+ grill-me 落盘 artifact .hcc/product/venture-product-requirement/N3.5_grill_log.md 存在（追问数≥N 语义校验放 SKILL.md 自检清单，引擎层只 existsSync，主题4 分层）；venture-product-requirement 激活 grill-me 打磨 §3 清晰度/可验证性/边界（禁问市场/画像/竞品）；可证伪：fs.existsSync×2 + 关键词 includes（§3 功能需求/§5 验收/N3.5_grill_log）⚠️ 统一规范（hcc 目录统一阶段1，2026-06-25）：所有节点产物路径统一 .hcc/{部门}/{skill}/{phase}_{feature}_{type}.md（charter L126）。N3.5/N7 先行合规，阶段1 补齐 N1/N2/N3。extractArtifact 已加双路径（.hcc/ 优先 + .venture/artifacts/ 兼容）。"
     },
     {
       "id": "N4",
@@ -65,50 +65,84 @@
     {
       "from": "N1",
       "to": "N2",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N2",
       "to": "N3",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N3",
       "to": "N3.5",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N3.5",
       "to": "N4",
-      "condition": { "signal": "unknown", "awaiting_human": true, "gate": "HG1" }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": true,
+        "gate": "HG1"
+      }
     },
     {
       "from": "N4",
       "to": "N5",
-      "condition": { "signal": "unknown", "awaiting_human": true, "gate": "HG2" }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": true,
+        "gate": "HG2"
+      }
     },
     {
       "from": "N5",
       "to": "N6",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N6",
       "to": "N7",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N7",
       "to": "N6",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     },
     {
       "from": "N7",
       "to": "N8",
-      "condition": { "signal": "unknown", "awaiting_human": false }
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
     }
   ],
   "loop_backs": [
-    { "from": "N7", "to": "N6", "max_iter": 3, "converge_field": "signal" }
+    {
+      "from": "N7",
+      "to": "N6",
+      "max_iter": 3,
+      "converge_field": "signal"
+    }
   ]
 }
