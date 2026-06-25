@@ -257,11 +257,17 @@ function extractEntry(skill, exitCondition) {
   return m ? '/' + m[1] : null;
 }
 
-// 从 exit_condition 提取 artifact 路径（.venture/artifacts/xxx.md，set-signal --artifact 用）
+// 从 exit_condition 提取 artifact 路径（set-signal --artifact 用）
+// 双路径（hcc 目录统一阶段1）：新路径 .hcc/<部门>/<skill>/xxx.md 优先；
+//   不存在则读旧路径 .venture/artifacts/xxx.md（兼容期：旧项目/未迁节点仍可提取）
 function extractArtifact(exitCondition) {
   if (typeof exitCondition !== 'string') return null;
-  const m = exitCondition.match(/\.venture[\\/]artifacts[\\/][^\s）)]+\.md/i);
-  return m ? m[0] : null;
+  // 新路径优先：.hcc/<任意子路径>/xxx.md（层3产物统一目录，charter L126）
+  const mNew = exitCondition.match(/\.hcc[\\/][^\s）)]+\.md/i);
+  if (mNew) return mNew[0];
+  // 旧路径：.venture/artifacts/xxx.md
+  const mOld = exitCondition.match(/\.venture[\\/]artifacts[\\/][^\s）)]+\.md/i);
+  return mOld ? mOld[0] : null;
 }
 
 // ── orchestrate 主流程（M2 R2.1-R2.2）──
