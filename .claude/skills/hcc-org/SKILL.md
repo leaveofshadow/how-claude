@@ -167,7 +167,7 @@ trigger: hcc-org/部门协作/部门交接
 
 ### 3.3 .hcc 产物目录体系（charter 块4，层3 统一落盘规范）
 
-> **并行关系**（charter L122）：层3 新产物按 `.hcc/` 三层路径落盘（本段）；层1 runtime 数据仍落 `.venture/`、决策文档落 `.2pp/`（不跨项目迁）。`.hcc/` 入库做基线，`.venture/`+`.2pp/` gitignore（业务产物入库，运行态/决策沙箱不入库）。
+> **并行关系**（charter L122 + hcc 目录统一阶段1-3）：层3 产物按 `.hcc/{部门}/{skill}/` 落盘（本段，入库基线）；runtime 数据落 `.hcc/state`（阶段2：写固定 .hcc/state + 读 fallback .venture/state）；决策文档落 `.hcc/decisions/`（阶段3：从 .2pp 统一，旧 .2pp 向下兼容作历史归档）。`.hcc/{部门}/{skill}/` 入库；`.hcc/{state,decisions,artifacts,archived}/` + `.venture/` + `.2pp/` gitignore（层3业务产物入库，运行态/决策沙箱不入库）。
 
 **路径模板**：`.hcc/{部门}/{venture业务skill}/{phase}_{feature}_{type}.md`
 - **部门** = decision / product / dev / ops / sales（与 §2 RACI 五部门对齐）
