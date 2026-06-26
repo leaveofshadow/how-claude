@@ -258,8 +258,8 @@ function extractEntry(skill, exitCondition) {
 }
 
 // 从 exit_condition 提取 artifact 路径（set-signal --artifact 用）
-// 双路径（hcc 目录统一阶段1）：新路径 .hcc/<部门>/<skill>/xxx.md 优先；
-//   不存在则读旧路径 .venture/artifacts/xxx.md（兼容期：旧项目/未迁节点仍可提取）
+// 三路径（hcc 目录统一阶段1+4）：新路径 .hcc/<部门>/<skill>/xxx.md 优先；
+//   次旧路径 .venture/artifacts/xxx.md；末兼容 docs/<子路径>/xxx.md（阶段4：旧项目 docs/ 产物兼容读）
 function extractArtifact(exitCondition) {
   if (typeof exitCondition !== 'string') return null;
   // 新路径优先：.hcc/<任意子路径>/xxx.md（层3产物统一目录，charter L126）
@@ -267,7 +267,10 @@ function extractArtifact(exitCondition) {
   if (mNew) return mNew[0];
   // 旧路径：.venture/artifacts/xxx.md
   const mOld = exitCondition.match(/\.venture[\\/]artifacts[\\/][^\s）)]+\.md/i);
-  return mOld ? mOld[0] : null;
+  if (mOld) return mOld[0];
+  // 阶段4 兼容：docs/<任意子路径>/xxx.md（interview-mvp/lunwen_writer 等旧项目产物落 docs/）
+  const mDocs = exitCondition.match(/docs[\\/][^\s）)]+\.md/i);
+  return mDocs ? mDocs[0] : null;
 }
 
 // ── orchestrate 主流程（M2 R2.1-R2.2）──

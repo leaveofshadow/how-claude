@@ -45,6 +45,11 @@ test('N3 新路径：.hcc/decision/hcc-decision/N3_决策方案_decision.md', ()
   );
 });
 
+test('阶段4 兼容：docs/<子路径>/xxx.md（旧项目 docs/ 产物）', () => {
+  const exit = 'artifact docs/n4-selftest-plan.md 存在且含关键词 自测';
+  assert.strictEqual(extractArtifact(exit), 'docs/n4-selftest-plan.md');
+});
+
 test('无 artifact 路径 → null', () => {
   assert.strictEqual(extractArtifact('HG1 resolve 后的出口节点（无 artifact）'), null);
   assert.strictEqual(extractArtifact(null), null);
