@@ -34,19 +34,19 @@
       "id": "N4",
       "type": "task",
       "skill": "placeholder",
-      "exit_condition": "HG1 resolve 后的出口节点（最小闭环验证到此为止；C7：占位 exit_condition，引擎流转到达即满足，业务 skill 实施占位不验证）"
+      "exit_condition": "artifact .hcc/dev/hcc-dev/N4_原型_plan.md 存在且含关键词 原型（hcc-dev 原型产出；C7 占位：skill=placeholder 不激活，HG1 出口最小闭环外，但落盘路径规范 .hcc/dev/hcc-dev/）"
     },
     {
       "id": "N5",
       "type": "task",
       "skill": "placeholder",
-      "exit_condition": "验证完成（最小闭环外，HG2 之后，占位，C7）"
+      "exit_condition": "artifact .hcc/product/venture-product/N5_验证_decision.md 存在且含关键词 验证（venture-product 验证决策；C7 占位：skill=placeholder，HG2 之后最小闭环外）"
     },
     {
       "id": "N6",
       "type": "task",
       "skill": "placeholder",
-      "exit_condition": "产品化完成（最小闭环外，占位，C7）"
+      "exit_condition": "artifact .hcc/product/venture-product/N6_产品化_spec.md 存在且含关键词 产品化（venture-product 产品化；C7 占位：skill=placeholder，最小闭环外）"
     },
     {
       "id": "N7",
@@ -58,7 +58,7 @@
       "id": "N8",
       "type": "task",
       "skill": "placeholder",
-      "exit_condition": "规模化完成（最小闭环外，出口，占位，C7）"
+      "exit_condition": "artifact .hcc/sales/venture-sales-scale/N8_规模化_plan.md 存在且含关键词 规模化（venture-sales-scale 规模化；C7 占位：skill=placeholder，出口最小闭环外）"
     }
   ],
   "edges": [
