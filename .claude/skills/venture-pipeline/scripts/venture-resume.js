@@ -359,6 +359,9 @@ function cmdOrchestrate(opts) {
   if (normalEdge) {
     const edgeStr = `${normalEdge.from}:${normalEdge.to}`;
     const artifactArg = artifact ? ` --artifact ${artifact}` : '';
+    if (artifact) {
+      lines.push(`0. 产物落盘（hcc 目录统一阶段4·写受控）：节点产物内容写临时文件 → node write-artifact.js --node ${currentNode} --in <临时文件> --dag ${dagPath}（路径由 dag exit_condition 决定 → ${artifact}；或直接 Write 该路径）`);
+    }
     lines.push(`1. node venture-resume.js set-signal --edge ${edgeStr} --signal green${artifactArg} --dag ${dagPath}`);
     lines.push(`2. node advance-node.js advance --dag ${dagPath}`);
     lines.push(`3. node venture-resume.js orchestrate --dag ${dagPath}（看下一个节点指令）`);
