@@ -102,7 +102,8 @@ function testE2EPushChain() {
     writeN3State(stateRoot, dagCopy);
 
     // ── 步骤1：set-signal N3:N3.5 green + N3 artifact（unknown 普通 edge 改 green）──
-    const art = path.join(tmpBase, 'N3-方案.md');
+    const art = path.join(tmpBase, '.hcc', 'decision', 'hcc-decision', 'N3_决策方案_decision.md');
+    fs.mkdirSync(path.dirname(art), { recursive: true });
     fs.writeFileSync(art, '七维评分：hcc-decision 拍板测试', 'utf8');
     const r1 = spawnSync('node', [VR, 'set-signal', '--dag', dagCopy, '--root', stateRoot,
       '--edge', 'N3:N3.5', '--signal', 'green', '--artifact', art], { encoding: 'utf8' });

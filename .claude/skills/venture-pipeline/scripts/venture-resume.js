@@ -211,6 +211,19 @@ function cmdSetSignal(opts) {
     throw new Error(`edge ${from}→${to} 是 HG edge（awaiting_human:true），signal 是死字段——set-signal 只改普通段 edge（R3，HG 越闸靠 resolve-hg）`);
   }
 
+  // 阶段4 机制强制：--artifact 路径必须以 from node exit_condition 规定路径结尾（堵 agent 落 docs/ 等偏离；
+  // endsWith 避开相对/绝对路径形式差异；兼容旧：dag exit_condition 指向 docs/.venture/ 时仍合规，指向 .hcc/ 时 docs/ 被拒）
+  const fromNode = dagObj.nodes.find((n) => n.id === from);
+  if (fromNode && typeof fromNode.exit_condition === 'string') {
+    const expected = extractArtifact(fromNode.exit_condition);
+    if (expected) {
+      const artifactNorm = String(opts.artifact).replace(/\\/g, '/');
+      if (!artifactNorm.endsWith(expected.replace(/\\/g, '/'))) {
+        throw new Error(`--artifact "${opts.artifact}" 不以 exit_condition 规定 "${expected}" 结尾（阶段4 机制强制：产物必须落 dag 规定路径）`);
+      }
+    }
+  }
+
   // 改 dag.json 普通段 edge.signal（in-place 改字段，整对象写回）
   const oldSignal = edge.condition.signal;
   edge.condition.signal = opts.signal;

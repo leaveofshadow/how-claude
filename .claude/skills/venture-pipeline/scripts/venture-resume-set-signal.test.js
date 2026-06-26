@@ -168,7 +168,8 @@ function testSuccess() {
   const { stateRoot, dagCopy, tmpBase } = makeIsolatedRoot();
   try {
     writeN1State(stateRoot, dagCopy);
-    const artifact = path.join(tmpBase, 'N1-机会调查.md');
+    const artifact = path.join(tmpBase, '.hcc', 'sales', 'venture-sales-judge', 'N1_机会调查_report.md');
+    fs.mkdirSync(path.dirname(artifact), { recursive: true });
     fs.writeFileSync(artifact, '市场痛点：测试用', 'utf8');
     const r = runSetSignal(stateRoot, dagCopy, ['--edge', 'N1:N2', '--signal', 'green', '--artifact', artifact]);
     assert(r.status === 0, `exit 0（实际 ${r.status}）`);
@@ -189,7 +190,8 @@ function testRehashNoReset() {
     const before = readJSON(psPath(stateRoot));
     const beforeHash = before.graph_hash;
 
-    const artifact = path.join(tmpBase, 'N1-机会调查.md');
+    const artifact = path.join(tmpBase, '.hcc', 'sales', 'venture-sales-judge', 'N1_机会调查_report.md');
+    fs.mkdirSync(path.dirname(artifact), { recursive: true });
     fs.writeFileSync(artifact, '市场痛点：R1 rehash 测试', 'utf8');
     const r = runSetSignal(stateRoot, dagCopy, ['--edge', 'N1:N2', '--signal', 'green', '--artifact', artifact]);
     assert(r.status === 0, `exit 0（实际 ${r.status}）`);
