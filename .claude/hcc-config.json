@@ -1,0 +1,9 @@
+{
+  "$schema": "hcc-behavior-v1",
+  "thinking_depth": "2pp",
+  "plan_granularity": "moderate",
+  "permission_scope": "approval-required",
+  "overrides": {
+    "allow_runtime_switch": true
+  }
+}
