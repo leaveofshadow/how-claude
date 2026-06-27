@@ -3,13 +3,13 @@ doc: org-protocol-deep
 layer: D10 (hcc-org)
 status: draft
 created: 2026-06-17
-basis: hcc-org/SKILL.md §1-§5（深度展开）+ 50-decision §八 α' + 00-explore §5/§6
+basis: charter.md §1-§5（深度展开）+ 50-decision §八 α' + 00-explore §5/§6
 parent: ../SKILL.md
 ---
 
 # org-protocol-deep.md —— hcc-org 协议宪法深度参考
 
-> **定位**：本文件是 hcc-org/SKILL.md 的按需加载深度参考（非必读）。展开 §1 协作总则的设计理由（§A）、§2 RACI 总表的推导过程（§B）、§3 交接协议细则（§C）、§2.1 冲突仲裁案例库（§D）。
+> **定位**：本文件是 charter.md 的按需加载深度参考（非必读）。展开 §1 协作总则的设计理由（§A）、§2 RACI 总表的推导过程（§B）、§3 交接协议细则（§C）、§2.1 冲突仲裁案例库（§D）。
 >
 > **实施者 = Claude Code + 已装载 skills**。5 部门皆由 Claude 分饰，协作成本按 token / 上下文轮次 / 文件交接开销度量（C-2：禁人天隐喻）。本文件禁出现任何 state 写者函数的**调用符号或实现逻辑**（含层1 原子写工具 / 同步写盘 API / 层1 init 脚本 / 换向脚本的具体函数符号），统一用职责名指代（[A-5/B-4] 纯引用约束）。
 
@@ -134,7 +134,7 @@ parent: ../SKILL.md
 └── sales-validation.md       # 销售部 N8 市场验证
 ```
 
-**命名规则**：`{部门缩写}-{产物类型}.md`。部门缩写：decision/product/dev/ops/sales。产物类型语义见 hcc-org/SKILL.md §3.1。
+**命名规则**：`{部门缩写}-{产物类型}.md`。部门缩写：decision/product/dev/ops/sales。产物类型语义见 charter.md §3.1。
 
 ### §C.2 direction_version 绑定规则
 
@@ -168,7 +168,7 @@ parent: ../SKILL.md
 
 ## §D 冲突仲裁案例库（[A-8] 修复，≥3 个场景）
 
-> **基准**：每行至少 1 R + 1 A（hcc-org/SKILL.md §2 RACI 总表）。冲突时按 §2.1 仲裁规则处理。
+> **基准**：每行至少 1 R + 1 A（charter.md §2 RACI 总表）。冲突时按 §2.1 仲裁规则处理。
 
 ### 案例1：N6 产品化 R 冲突（产品部 vs 开发部）
 
@@ -179,7 +179,7 @@ parent: ../SKILL.md
 **仲裁路径**：
 1. 决策部 review 两部门 plan（cc-2pp 判官小组）。
 2. 裁定：产品部 R（产品设计决策），开发部 C（实施细节执行，N6 的「化」由产品部主导设计，开发部实施）。
-3. 落盘：更新 hcc-org/SKILL.md §2.1 节点行 N6（产品部 R，开发部 C），通知两部门。
+3. 落盘：更新 charter.md §2.1 节点行 N6（产品部 R，开发部 C），通知两部门。
 
 **依据**：charter L62 产品部「产品设计」+ L63 开发部「按 plan 实施」——产品化 = 设计驱动实施，R 归设计方。
 
@@ -224,4 +224,4 @@ parent: ../SKILL.md
 
 ---
 
-> **org-protocol-deep.md 完。** 4 段：§A 协作总则推导（5 条 × 设计理由 + 证据锚点）+ §B RACI 推导（节点行 + state 字段行）+ §C 交接细则（命名/绑定/handoff pair/经脚本）+ §D 冲突仲裁案例库（4 案例）。0 写者函数调用（纯引用约束）。深度展开 hcc-org/SKILL.md §1-§3 + §2.1，按需加载非必读。
+> **org-protocol-deep.md 完。** 4 段：§A 协作总则推导（5 条 × 设计理由 + 证据锚点）+ §B RACI 推导（节点行 + state 字段行）+ §C 交接细则（命名/绑定/handoff pair/经脚本）+ §D 冲突仲裁案例库（4 案例）。0 写者函数调用（纯引用约束）。深度展开 charter.md §1-§3 + §2.1，按需加载非必读。

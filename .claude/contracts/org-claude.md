@@ -1,18 +1,18 @@
 ---
 name: org-claude
 type: contract
-scope: shared（cc-2pp + hcc-org + venture-product-requirement + 所有 hcc-* 引用）
+scope: shared（cc-2pp + hcc-org + hcc-product-requirement + 所有 hcc-* 引用）
 version: v1（2026-06-24，契约单一来源落地）
 ---
 
 # org-claude 契约 —— 组织 ↔ Claude 实施者
 
 > **单一来源声明**：本文件是「组织实施者是谁 + 怎么度量」的唯一真理源。
-> cc-2pp / hcc-org / venture-product-requirement / hcc-* 等下游引用本文件语义锚，**不内联重复**。
+> cc-2pp / hcc-org / hcc-product-requirement / hcc-* 等下游引用本文件语义锚，**不内联重复**。
 > **抽取自三处同源**（消除双源真理，2026-06-24 勘察实证）：
 > - cc-2pp/SKILL.md（假设1「范式转移」+ Prompt 注入约束块 L122/136-159）
-> - hcc-org/SKILL.md §定位（L12「实施者=Claude+skills」+ C-2 禁人天隐喻）
-> - venture-product-requirement/SKILL.md §度量口径（L254 token ROI + L266-269 Claude 度量）
+> - charter.md §定位（L12「实施者=Claude+skills」+ C-2 禁人天隐喻）
+> - hcc-product-requirement/SKILL.md §度量口径（L254 token ROI + L266-269 Claude 度量）
 
 ---
 
@@ -83,9 +83,9 @@ Claude 实施者的 **token ROI 不好估**：
 | cc-2pp/SKILL.md | L122 token ROI 段 | `#token-roi` |
 | cc-2pp/SKILL.md | L142-146 实施者认知锚定判定（定义已抽 `_roles/injection-template.md`） | `#cognitive-anchor` |
 | cc-2pp/SKILL.md | L36/L151 Claude 度量（定义已抽 `_roles/injection-template.md`） | `#measure` |
-| hcc-org/SKILL.md | L12 实施者锚定 + C-2 | `#cognitive-anchor` + `#measure` |
-| venture-product-requirement/SKILL.md | L254 token ROI | `#token-roi` |
-| venture-product-requirement/SKILL.md | L266-269 度量口径 | `#measure` |
+| charter.md | L12 实施者锚定 + C-2 | `#cognitive-anchor` + `#measure` |
+| hcc-product-requirement/SKILL.md | L254 token ROI | `#token-roi` |
+| hcc-product-requirement/SKILL.md | L266-269 度量口径 | `#measure` |
 | cc-2pp/references/2pp-guide.md | L30/53/122/648 token ROI 降级（见假设5） | `#token-roi` |
 
 > 改造原则：下游保留**判定/触发逻辑**（何时引用、违反信号→扣分），只把**契约定义**改为引用本文件。判定逻辑不可移走（cc-2pp F2 修复原则：契约只放定义，判定留调用方）。

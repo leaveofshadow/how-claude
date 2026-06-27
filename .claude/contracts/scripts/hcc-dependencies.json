@@ -8,7 +8,7 @@
       "source": "mattpocock/skills@grill-me",
       "install": "npx skills add mattpocock/skills@grill-me -g -y",
       "required": true,
-      "required_by": "N3.5 需求规格（venture-product-requirement 激活 grill-me 追问挖需求）",
+      "required_by": "N3.5 需求规格（hcc-product-requirement 激活 grill-me 追问挖需求）",
       "location": "user",
       "required_for": ["PoC", "MVP", "通用框架", "生产级"],
       "check_paths": [
@@ -22,7 +22,7 @@
       "source": "bergside/awesome-design-skills",
       "install": "npx typeui.sh pull minimal -p claude",
       "required": false,
-      "required_by": "N7 迭代优化（venture-product-uiux 选风格 slug pull 生成设计系统）",
+      "required_by": "N7 迭代优化（hcc-product-uiux 选风格 slug pull 生成设计系统）",
       "location": "user",
       "required_for": ["MVP", "通用框架", "生产级"],
       "check_paths": [

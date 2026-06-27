@@ -95,7 +95,7 @@ function parseNodeRaciTable(content) {
 function testDepartmentsReferenceRaci() {
   // 阶段5 协议降级：5 部门 skill → contract-{部门}.md；锚点暂保留旧文本（hcc-org/SKILL.md），
   // 阶段F 改 5 contract 锚点为 charter.md 时同步更新此处 ANCHOR。
-  const ANCHOR = '参见 hcc-org/SKILL.md §2 RACI 总表';
+  const ANCHOR = '参见 charter.md §2 RACI 总表';
   for (const d of DEPTS) {
     const contractFile = path.join(CONTRACTS_ROOT, `contract-${d}.md`);
     assert(fs.existsSync(contractFile), `contract-${d}.md 存在`);

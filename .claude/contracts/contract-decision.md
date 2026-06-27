@@ -6,7 +6,7 @@ trigger: hcc-decision/决策部/judge/方案拍板
 
 # hcc-decision — 决策部协议
 
-> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `hcc-org/SKILL.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 hcc-org/SKILL.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
+> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `charter.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 charter.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
 
 ## §1 部门职责
 
@@ -34,7 +34,7 @@ trigger: hcc-decision/决策部/judge/方案拍板
 
 ## §4 交接协议
 
-参见 hcc-org/SKILL.md §2 RACI 总表（决策部行）。决策部对 state 字段读写（经脚本/Hook，非直写，hcc-org §4.3）：
+参见 charter.md §2 RACI 总表（决策部行）。决策部对 state 字段读写（经脚本/Hook，非直写，hcc-org §4.3）：
 - **direction_version**：只读 + 判定后调 shift-direction.js 换向（不直写 direction.json，C1，hcc-org 总则3）。
 - **pipeline-state.status/gate**：HG 拍板后经 resolve-hg.js 解除 awaiting_human（不直写 pipeline-state.json）。
 - **trace / tasks.tree**：经层1 Hook 间接读写（hcc-org 总则1）。
@@ -43,7 +43,7 @@ trigger: hcc-decision/决策部/judge/方案拍板
 
 ## §5 业务能力
 
-参见 hcc-org/SKILL.md §5 工具箱映射表（决策部行）。
+参见 charter.md §5 工具箱映射表（决策部行）。
 
 - **cc-2pp**（判官小组 + 对抗验证）：已在工具箱 ✓ —— §2/§3 流程来源。
 - **cc-goal**（终态条件设计）：已在工具箱 ✓ —— HG 拍板的终态条件。
