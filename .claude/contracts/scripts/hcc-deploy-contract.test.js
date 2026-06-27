@@ -25,7 +25,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DEPS_PATH = path.join(__dirname, 'hcc-dependencies.json');
-const SKILL_PATH = path.join(__dirname, '..', 'SKILL.md');
+const SKILL_PATH = path.join(__dirname, '..', 'charter.md'); // 阶段5：hcc-org/SKILL.md 降级为 contracts/charter.md
 const PREFLIGHT_PATH = path.join(__dirname, 'hcc-preflight.js');
 
 const LOCATIONS = ['project', 'sandbox', 'user'];
