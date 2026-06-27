@@ -1,11 +1,9 @@
 ---
-name: hcc-org
-description: 组织层·协议宪法（5 部门协作总则 + RACI 总表 + 交接协议）
+description: 组织层·协议宪法 charter（5 部门协作总则 + RACI 总表 + 交接协议；阶段5 协议降级，原 hcc-org skill → contracts/charter.md 文档）
 protocol_version: "D11-2026-06-22"
-trigger: hcc-org/部门协作/部门交接
 ---
 
-# hcc-org — 组织层·协议宪法
+# charter — 组织层·协议宪法
 
 > **定位**：本目录是**组织宪法容器，不是第 6 个部门**（50-decision §一/§六裁决）。5 个业务部门（决策/产品/开发/运维/销售）共同引用本文件的 §2 RACI 总表作为协作地基，类比「公司章程」。
 >
@@ -25,7 +23,7 @@ trigger: hcc-org/部门协作/部门交接
 2. **读 env-scan.json**：`.hcc/ops/hcc-org/env-scan.json`（preflight 自动落盘，含 timestamp + 依赖状态 + summary；TTL 24h 缓存：< 24h 返 cached:true，>= 24h 重扫）
 3. **缺失分级处置**：
    - **阻断（required:true 缺失）** → 对应节点无法启动：
-     - `grill-me` 缺失 → **N3.5 需求规格**停摆（venture-product-requirement 激活 grill-me 追问挖需求）→ 补装 `npx skills add mattpocock/skills@grill-me -g -y`（`-g` 用户级，charter L21 全局装）后重跑
+     - `grill-me` 缺失 → **N3.5 需求规格**停摆（hcc-product-requirement 激活 grill-me 追问挖需求）→ 补装 `npx skills add mattpocock/skills@grill-me -g -y`（`-g` 用户级，charter L21 全局装）后重跑
    - **告警（required:false 缺失）** → 不阻断主闭环，用到时再补：
      - `bergside-type-ui` 缺失 → N7 迭代优化用到时补 `npx typeui.sh pull <slug> -p claude`（slug 按 PRD 产品类型动态选）
 4. **依赖清单**：`.claude/skills/hcc-org/scripts/hcc-dependencies.json`（声明 check_paths 项目级 + 用户级 fallback + required 分级 + install 命令）
@@ -79,7 +77,7 @@ trigger: hcc-org/部门协作/部门交接
 | **N1 启动** | 机会启动 / 方向锚定 | C | I | I | C | **R** |
 | **N2 机会识别** | 调研 / 竞品分析 | C | I | I | I | **R** |
 | **N3 方案** | 计划起草（判官小组） | **R/A** | C | C | I | C |
-| **N3.5 需求规格** | PRD 产出（venture-product-requirement 激活） | **A** | **R** | C | I | C |
+| **N3.5 需求规格** | PRD 产出（hcc-product-requirement 激活） | **A** | **R** | C | I | C |
 | **HG1** | 方案→原型 boss 决策闸 | **A** | C | I | I | C |
 | **N4 原型** | 按方案实施原型 | **A** | C | **R** | I | I |
 | **HG2** | 原型→验证 boss 决策闸 | **A** | C | I | I | C |
@@ -182,19 +180,19 @@ trigger: hcc-org/部门协作/部门交接
 | N1 机会调查 | sales | venture-sales-judge | report | `N1_机会调查_report.md` |
 | N2 竞品 | sales | venture-sales-judge | report | `N2_竞品_report.md` |
 | N3 决策方案 | decision | hcc-decision（引用 cc-2pp） | decision | `N3_决策方案_decision.md` |
-| **N3.5 需求规格** | **product** | **venture-product-requirement** | **prd** | `N3.5_需求规格_prd.md` |
-| (变更日志) | product | venture-product-requirement | changelog | `N3.5_需求变更_changelog.md` |
+| **N3.5 需求规格** | **product** | **hcc-product-requirement** | **prd** | `N3.5_需求规格_prd.md` |
+| (变更日志) | product | hcc-product-requirement | changelog | `N3.5_需求变更_changelog.md` |
 | N4 原型 | dev | hcc-dev（引用 executor/superpowers） | plan | `N4_原型_plan.md` |
 | N5 验证 | product | venture-product | decision | `N5_验证_decision.md` |
 | N6 产品化 | product | venture-product | spec | `N6_产品化_spec.md` |
-| N7 迭代优化 | product | venture-product-uiux | spec | `N7_迭代优化-uiux_spec.md` |
+| N7 迭代优化 | product | hcc-product-uiux | spec | `N7_迭代优化-uiux_spec.md` |
 | N8 规模化 | sales | venture-sales-scale | plan | `N8_规模化_plan.md` |
 
 > **agent 层前缀混合**（charter L116 (b) Boss 定）：`venture-*`（product 三件 + sales judge/scale）+ `hcc-*`（decision/dev）。decision/dev 无 venture 业务 skill = 设计正确（这两个部门本质「引用外部生态」，非缺口），不补自建方法论。
 
 **写者归属**（C1，charter L124）：各 artifact 由对应 venture skill 经 venture 流程写；引擎（venture-pipeline）只推进节点（advance-node/resolve-hg 写 state），不直写 artifact。
 
-> **可证伪闸**（R4.1）：grep `.hcc/{部门}` ≥1；grep `N3.5.*venture-product-requirement.*prd` ≥1（映射表 N3.5 行）。
+> **可证伪闸**（R4.1）：grep `.hcc/{部门}` ≥1；grep `N3.5.*hcc-product-requirement.*prd` ≥1（映射表 N3.5 行）。
 
 ---
 
@@ -217,7 +215,7 @@ trigger: hcc-org/部门协作/部门交接
 本段（及 hcc-org/ 全目录）**不出现** 任何 state 写者函数的**调用符号或实现逻辑**（含层1 原子写工具 / 同步写盘 API / 层1 init 脚本 / 换向脚本的具体函数符号），原因：
 - 写者函数的实现与调用属于层1/层2 脚本职责，**不属于组织协议层**（hcc-org 是协作协议容器，非运行时实现）。
 - 读写规则的真理源在 schema 文档（§4.1 引用表），复制实现逻辑会制造双源真理（50-decision §八 [A-5/B-4] 否决理由）。
-- 部门 SKILL.md（M3）§4 引用本段时，统一措辞「参见 hcc-org/SKILL.md §2 RACI 总表」，不复制规则（[β 嫁接]，grep 锚点固定）。
+- 部门 SKILL.md（M3）§4 引用本段时，统一措辞「参见 charter.md §2 RACI 总表」，不复制规则（[β 嫁接]，grep 锚点固定）。
 
 > **可证伪闸**：在 hcc-org/ 全目录下 grep 层1 原子写工具符号 / 同步写盘 API / 层1 init 脚本名 → 命中 = 0（M1 R1.1 闸2 + M4 R4.1 测试④）。本文件用「写者函数」「层1 init 脚本」「换向脚本」等职责名指代，不写具体函数符号，既表达约束又通过字面闸。
 
@@ -240,7 +238,7 @@ trigger: hcc-org/部门协作/部门交接
 | 部门 | 节点 | 工具箱技能（已 installed） | 覆盖度 | 缺口（层3 待装配） |
 |------|------|--------------------------|:------:|------------------|
 | **决策部** | N3/N4/HG | cc-2pp（判官小组 + 对抗验证）/ cc-goal（终态条件）/ cc-orchestration（编排决策树） | ✓ 厚实 | 无（venture-sales-judge 系统级 installed，层3 装配承接） |
-| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | venture-product（产品设计）/ venture-product-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
+| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | venture-product（产品设计）/ hcc-product-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
 | **开发部** | 实施节点 | cc-loop（worktree SOP + 循环合同 + 护栏三件套）/ executor（OMC autopilot/ralph，外部 agent）/ superpowers:* 系列（外部 skill 生态） | ⚠️ 中等 | 代码质量/测试/重构专项（依赖外部 skill 生态，非本项目技能） |
 | **运维部** | 层1 贯穿（横切） | cc-runtime（state/trace/Hook 地基）/ cc-config（六层配置 + CLAUDE.md 诊断）/ cc-context（上下文健康） | ✓ 厚实 | 无（三者覆盖 7×24 保活全链路） |
 | **销售部** | N1/N2/N6 | venture-sales-judge（系统级 installed skill，创业评估师）/ cc-loop（循环方法论） | ❌ 真空 | venture-sales-judge 层3 装配承接（N1 调查/N2 竞品/N6 画像无本项目技能）+ 销售技能层3 新建（charter L80 真空） |
@@ -253,7 +251,7 @@ trigger: hcc-org/部门协作/部门交接
 
 ## §6 产出项目部署契约（框架级声明，随产出等级裁剪）
 
-> **位置**：charter 块1 复盘 P2（REVIEW MINOR 3.x 修复）。hcc 是**开发框架**，用它产出的代码项目分等级（类型集与 `venture-product-requirement §2` 单源：PoC / MVP / 通用框架 / 生产级；Boss 口语「产品/product」对应生产级）。**部署要求随产出等级裁剪**——框架不预设静态部署档位。
+> **位置**：charter 块1 复盘 P2（REVIEW MINOR 3.x 修复）。hcc 是**开发框架**，用它产出的代码项目分等级（类型集与 `hcc-product-requirement §2` 单源：PoC / MVP / 通用框架 / 生产级；Boss 口语「产品/product」对应生产级）。**部署要求随产出等级裁剪**——框架不预设静态部署档位。
 >
 > **为何 charter 不替项目定部署档（伪问题标注）**：「部署位置」是**下游产出项目**的属性（由其 §2 产品定位决定），而非 hcc 框架自身的属性。charter 只声明**裁剪规则**（各等级如何变），不替每个产出项目定档（那是项目 §2 cite 证据的职责）。把「框架自身是单机还是多机」当成 charter 静态属性来问 = **伪问题**（产出项目的动态属性错装成框架静态属性）——所以 REVIEW Open Question #1「charter 文档未找到此声明」不是缺陷，是必然结果。
 
@@ -261,11 +259,11 @@ trigger: hcc-org/部门协作/部门交接
 
 | 代号 | 物理位置 | git 跟踪 | 典型内容 |
 |------|---------|:-------:|---------|
-| `project` | 项目内 `.claude/skills/` | ✅ 入库 | 引擎 + 协议 + 治理 skill（cc-runtime / venture-pipeline / hcc-org / hcc-* / venture-product-requirement） |
+| `project` | 项目内 `.claude/skills/` | ✅ 入库 | 引擎 + 协议 + 治理 skill（cc-runtime / venture-pipeline / hcc-org / hcc-* / hcc-product-requirement） |
 | `sandbox` | 本机临时目录（如 `E:\tmp\hcc\`） | ❌ 不入库 | 业务实装 skill（PoC 期实装，尚未固化入项目） |
 | `user` | 用户级 `~/.claude/skills/` | ❌（全局） | 第三方外部 skill（venture-sales-judge / grill-me / bergside） |
 
-### 6.2 四档 × 部署要求矩阵（复用 venture-product-requirement §2 类型集，单源真理）
+### 6.2 四档 × 部署要求矩阵（复用 hcc-product-requirement §2 类型集，单源真理）
 
 | 项目类型（§2 cite） | project | sandbox | user（外部依赖） | 可移植性要求 |
 |-------------------|:------:|:------:|:------------:|------------|
@@ -278,15 +276,15 @@ trigger: hcc-org/部门协作/部门交接
 
 charter block1 自身 = 用 hcc 框架产出的 **PoC 档**实例（业务实装验证框架）：
 
-- **引擎层**（19 skill：cc-runtime / venture-pipeline / hcc-org / hcc-* / venture-product-requirement）：`project` 位置，git 入库 ✅ 天然可移植
-- **业务实装**（venture-product-uiux 已迁主项目 `.claude/skills/` + N7.skill 装配）：`project` ✅（2026-06-24 从 sandbox `E:\tmp\hcc\` 迁回，PoC 档 project 位置合规；反幻觉同步契约与实际位置）
+- **引擎层**（19 skill：cc-runtime / venture-pipeline / hcc-org / hcc-* / hcc-product-requirement）：`project` 位置，git 入库 ✅ 天然可移植
+- **业务实装**（hcc-product-uiux 已迁主项目 `.claude/skills/` + N7.skill 装配）：`project` ✅（2026-06-24 从 sandbox `E:\tmp\hcc\` 迁回，PoC 档 project 位置合规；反幻觉同步契约与实际位置）
 - **外部依赖**（venture-sales-judge / grill-me / bergside）：`user` ✅ PoC 档可接受（preflight warn 不阻断 N3.5 主闭环）
 
 > **升级触发**：产出项目 §2 类型声明从 PoC → MVP / 生产级时，按矩阵触发部署升级——sandbox 业务实装迁回 project；user 依赖补可复现 install 脚本；生产级再补迁移 SOP + 配置外置。这是**项目方的职责**，非框架自动完成。
 
-> **联动 + 单源**：本矩阵的类型集与裁剪逻辑由 `venture-product-requirement/SKILL.md §2` 单源 owns（类型 ∈ {PoC,MVP,通用框架,生产级}，必 cite §2 证据防 agent 自选）。hcc-org 只声明「部署维度」如何随类型裁剪，不复制类型定义。
+> **联动 + 单源**：本矩阵的类型集与裁剪逻辑由 `hcc-product-requirement/SKILL.md §2` 单源 owns（类型 ∈ {PoC,MVP,通用框架,生产级}，必 cite §2 证据防 agent 自选）。hcc-org 只声明「部署维度」如何随类型裁剪，不复制类型定义。
 >
-> **可证伪闸**（`hcc-org/scripts/hcc-deploy-contract.test.js`）：① hcc-dependencies.json 每条有 `location` ∈ {project,sandbox,user} + `required_for` 数组（元素 ∈ §2 类型集）；② venture-sales-judge 条目存在（required:true / location:user / 全档）；③ 本文件含 `venture-product-requirement §2` 联动锚点。
+> **可证伪闸**（`hcc-org/scripts/hcc-deploy-contract.test.js`）：① hcc-dependencies.json 每条有 `location` ∈ {project,sandbox,user} + `required_for` 数组（元素 ∈ §2 类型集）；② venture-sales-judge 条目存在（required:true / location:user / 全档）；③ 本文件含 `hcc-product-requirement §2` 联动锚点。
 
 ---
 
@@ -296,4 +294,4 @@ charter block1 自身 = 用 hcc 框架产出的 **PoC 档**实例（业务实装
 
 ---
 
-> **hcc-org/SKILL.md 完。** 7 段：§0 初始化自检 + §1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射 + §6 产出项目部署契约。protocol_version: "D11-2026-06-22" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 state 写者函数调用（§4 纯引用验证）；§0 自检脚本写 .hcc/ops/（非层1 state）；§6 部署要求随产出等级裁剪（单源 venture-product-requirement §2）。
+> **charter.md 完。** 7 段：§0 初始化自检 + §1 协作总则5条 + §2 RACI 总表（节点行 + state 字段行）+ §2 冲突仲裁规则（必读层）+ §3 交接协议 + §4 state 字段纯 RACI 引用 + §5 工具箱映射 + §6 产出项目部署契约。protocol_version: "D11-2026-06-22" 供 M2 cmdInit 读取。hcc-org/ 全目录 0 state 写者函数调用（§4 纯引用验证）；§0 自检脚本写 .hcc/ops/（非层1 state）；§6 部署要求随产出等级裁剪（单源 hcc-product-requirement §2）。

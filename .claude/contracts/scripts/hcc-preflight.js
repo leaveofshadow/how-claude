@@ -59,7 +59,7 @@ function decideCache(existingTimestamp, now) {
 function main() {
   const SCRIPT_DIR = __dirname;
   const DEPS_FILE = path.join(SCRIPT_DIR, 'hcc-dependencies.json');
-  const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..', '..');
+  const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..'); // 阶段5：contracts/scripts/ 比 skills/hcc-org/scripts/ 少 1 级（3 级回退到项目根）
   const ENV_SCAN_DIR = path.join(PROJECT_ROOT, '.hcc', 'ops', 'hcc-org');
   const ENV_SCAN_FILE = path.join(ENV_SCAN_DIR, 'env-scan.json');
 

@@ -1,11 +1,13 @@
 ---
-name: venture-product-uiux
+name: hcc-product-uiux
 description: >
   产品部 UIUX 方法论工具箱：引用 Bergside Type UI（67 风格 registry）。承接 N7 迭代优化 UIUX 维度 + N6 产品化设计系统生成。
-  Triggers on keywords: venture-product-uiux, UIUX, 界面优化, 设计系统, 视觉规范, 迭代优化, Bergside, typeui
+  Triggers on keywords: hcc-product-uiux, UIUX, 界面优化, 设计系统, 视觉规范, 迭代优化, Bergside, typeui
 ---
 
-# venture-product-uiux — 产品部 UIUX 方法论工具箱
+> **部门协议引用**（hcc 阶段5 协议降级）：执行前 Read `.claude/contracts/contract-product.md`（产品部协作契约，含 RACI 归属 + 与开发/运维交接锚点）。
+
+# hcc-product-uiux — 产品部 UIUX 方法论工具箱
 
 > **定位**：层3 cc-venture 业务能力 skill（工具箱引用模式）。服务产品部骨架 `hcc-product` §5 业务能力段，承接 venture DAG 的 **N7 迭代优化 UIUX 维度** + **N6 产品化设计系统生成**（hcc-org §2.1：N6/N7 归产品部 R）。
 >
@@ -89,4 +91,4 @@ N7 迭代时：已 pull 的 slug 提供 Style foundations + Quality gates，UIUX
   - 默认 slug 集见 §4（minimal / shadcn / glassmorphism / brutalism / editorial / neumorphism / luxury）。
   - preflight 告警级 optional（required:false，N7 才用；hcc-org §0 自检 + `hcc-dependencies.json` bergside-type-ui 条目）。
 - 关联骨架：`hcc-product/SKILL.md` §5（本 skill 被其名称引用）。
-- 产出落盘：hcc-org/SKILL.md §3.3 `.hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md`。
+- 产出落盘：charter.md §3.3 `.hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md`。

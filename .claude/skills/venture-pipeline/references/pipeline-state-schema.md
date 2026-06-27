@@ -29,7 +29,7 @@
 | `status` | enum | `active` \| `awaiting_human` | **独占 HG 停等语义**（嫁接1）；active=引擎可推进 / awaiting_human=HG 停等 boss 决策 |
 | `gate` | enum\|null | `null` \| `HG1` \| `HG2` | 当前停等的 HG 闸门编号；与 status 联动（status=awaiting_human 时 gate≠null） |
 | `graph_hash` | string | 64 位 sha256 hex | dag.json 的确定性哈希（复用 load-graph.computeGraphHash）；verify 子命令比对源（C6 防静默漂移） |
-| `protocol_version_read` | string\|null | hcc-org 协议版本号或 null | [B-2/C-4] 部门激活时记录读到的 hcc-org.protocol_version（cmdInit 读 hcc-org/SKILL.md frontmatter）；hcc-org 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞引擎） |
+| `protocol_version_read` | string\|null | hcc-org 协议版本号或 null | [B-2/C-4] 部门激活时记录读到的 hcc-org.protocol_version（cmdInit 读 charter.md frontmatter）；hcc-org 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞引擎） |
 | `history` | array | 事件对象数组 | 审计链（每次 init/set-hg/流转追加一条），结构见下 |
 
 ### history 事件结构
@@ -72,7 +72,7 @@
 
 **direction_version=1 假设**：init 时读 direction.json.current_version 写入（若 direction.json 不存在则 fallback=1）。R2.5 换向监测会比对此字段。
 
-**protocol_version_read=null 假设**：init 默认 null；cmdInit 实际写入时读 hcc-org/SKILL.md frontmatter 的 `protocol_version` 覆盖为版本号（[B-2/C-4] R2.1）。hcc-org 未装则保持 null（fallback，不阻塞层2 引擎）。R2.3 测试断言此字段。
+**protocol_version_read=null 假设**：init 默认 null；cmdInit 实际写入时读 charter.md frontmatter 的 `protocol_version` 覆盖为版本号（[B-2/C-4] R2.1）。hcc-org 未装则保持 null（fallback，不阻塞层2 引擎）。R2.3 测试断言此字段。
 
 ---
 

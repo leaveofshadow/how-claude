@@ -97,15 +97,21 @@ function readDirectionVersion(stateRoot) {
   }
 }
 
-// hcc-org/SKILL.md 路径：缺省 <cwd>/.claude/skills/hcc-org/SKILL.md（[B-2/C-4] R2.1）
+// charter.md 路径（阶段5 协议降级：原 hcc-org/SKILL.md → contracts/charter.md，[B-2/C-4] R2.1）
+// fallback 双探测：contracts/charter.md 优先 + 旧 skills/hcc-org/SKILL.md 兼容（过渡期不破坏旧项目）
 function resolveHccSkillPath(arg) {
   if (arg) return path.resolve(arg);
-  return path.resolve('.claude', 'skills', 'hcc-org', 'SKILL.md');
+  const charterNew = path.resolve('.claude', 'contracts', 'charter.md');
+  if (fs.existsSync(charterNew)) return charterNew;
+  const charterOld = path.resolve('.claude', 'skills', 'hcc-org', 'SKILL.md');
+  if (fs.existsSync(charterOld)) return charterOld;
+  return charterNew;  // 都不存在返新路径（readHccOrgProtocolVersion 内 ENOENT → null）
 }
 
-// 读 hcc-org/SKILL.md frontmatter 的 protocol_version（[B-2/C-4]：cmdInit 据此写入 pipeline-state.protocol_version_read 字段）
-// 纯字符串解析（C2：禁外部 yaml 依赖）——正则提取 frontmatter 内 protocol_version 行。
-// hcc-org 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞层2 引擎）
+// 读 charter.md frontmatter 的 protocol_version（阶段5 协议降级：原 hcc-org/SKILL.md → contracts/charter.md）
+// [B-2/C-4]：cmdInit 据此写入 pipeline-state.protocol_version_read 字段。
+// 纯字符串解析（C2：禁外部 yaml 依赖）——正则提取 frontmatter 内 protocol_version 行（charter.md 与原 SKILL.md frontmatter byte 级一致）。
+// charter 未装 / frontmatter 无此字段 / 读失败 → null（fallback，不阻塞层2 引擎）
 function readHccOrgProtocolVersion(skillPath) {
   try {
     if (!fs.existsSync(skillPath)) return null;

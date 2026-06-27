@@ -2,7 +2,7 @@
 /**
  * validate-n35.js —— N3.5 需求规格语义校验（charter 块1 复盘 P1.1）
  *
- * 把 venture-product-requirement/SKILL.md §4 六闸从「agent 自检 + 人工 M2 闸」
+ * 把 hcc-product-requirement/SKILL.md §4 六闸从「agent 自检 + 人工 M2 闸」
  * 升级为【可执行闸】，堵复盘 MAJOR 1.1（引擎层只 existsSync+includes，空壳六块可骗过）
  * + MAJOR 1.2（grill-me 追问数 N 未定义）。
  *
@@ -202,7 +202,7 @@ if (args.help || (!args.prd && !args.grill)) {
 用法：
   node validate-n35.js --prd <path> --grill <path> [--min-questions N]
 
-校验项（venture-product-requirement SKILL.md §4 六闸）：
+校验项（hcc-product-requirement SKILL.md §4 六闸）：
   闸F    产物存在（existsSync prd + grill）
   闸E    六块标题（§1-§6）+ 块正文 ≥ 50 字
   闸A    §2 首行类型声明（项目类型: <PoC|MVP|通用框架|生产级> ← <证据>）

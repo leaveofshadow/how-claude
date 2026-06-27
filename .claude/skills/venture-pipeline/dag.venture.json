@@ -25,7 +25,7 @@
     {
       "id": "N3.5",
       "type": "task",
-      "skill": "venture-product-requirement",
+      "skill": "hcc-product-requirement",
       "activate_external": "grill-me",
       "grill_min_questions": 3,
       "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含工程六块关键词（§3 功能需求 / §5 验收）（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；+ grill-me 落盘 artifact .hcc/product/venture-product-requirement/N3.5_grill_log.md 存在（追问数≥N 语义校验放 SKILL.md 自检清单，引擎层只 existsSync，主题4 分层）；venture-product-requirement 激活 grill-me 打磨 §3 清晰度/可验证性/边界（禁问市场/画像/竞品）；可证伪：fs.existsSync×2 + 关键词 includes（§3 功能需求/§5 验收/N3.5_grill_log）⚠️ 统一规范（hcc 目录统一阶段1，2026-06-25）：所有节点产物路径统一 .hcc/{部门}/{skill}/{phase}_{feature}_{type}.md（charter L126）。N3.5/N7 先行合规，阶段1 补齐 N1/N2/N3。extractArtifact 已加双路径（.hcc/ 优先 + .venture/artifacts/ 兼容）。"
@@ -51,7 +51,7 @@
     {
       "id": "N7",
       "type": "task",
-      "skill": "venture-product-uiux",
+      "skill": "hcc-product-uiux",
       "exit_condition": "artifact .hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md 存在且含 Bergside Quality gates 可证伪验收关键词（点击数/完成率/WCAG 对比度对比基线，禁'更好看'式不可证伪）；venture-product-uiux 引 bergside 67 slug 按 §4 映射表按需 pull（bergside-type-ui optional，preflight 告警级不阻断）支撑 N7 迭代优化 UIUX 维度（N6⇄N7 loop_back max_iter=3 收敛）；可证伪：fs.existsSync + 关键词 includes（Bergside Quality gates）"
     },
     {

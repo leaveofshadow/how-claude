@@ -6,7 +6,7 @@ trigger: hcc-ops/运维部/保活/state健康
 
 # hcc-ops — 运维部协议
 
-> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `hcc-org/SKILL.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 hcc-org/SKILL.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
+> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `charter.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 charter.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
 
 ## §1 部门职责
 
@@ -30,13 +30,13 @@ trigger: hcc-ops/运维部/保活/state健康
 
 ## §4 交接协议
 
-参见 hcc-org/SKILL.md §2 RACI 总表（运维部行）。
+参见 charter.md §2 RACI 总表（运维部行）。
 
 **纯 RACI 引用**（[A-5/B-4] 修复）：运维部 owns state 字段读写（R/A），被 4 部门读（C/I），但**读写规则完全引用 `cc-runtime/state-schema.md` §2.1-§2.5**（hcc-org §4 纯引用段），不自写脚本逻辑。state 字段的写者隔离 / 不变量 / 原子写协议等完整细节，一律以 state-schema.md 为唯一真理源——本文件不复制规则。运维部经层1 脚本/Hook 间接维护 state（hcc-org §4.3 部门读写 state 协议）。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
 
 ## §5 业务能力
 
-参见 hcc-org/SKILL.md §5 工具箱映射表（运维部行）。
+参见 charter.md §5 工具箱映射表（运维部行）。
 
 - **cc-runtime**（state/trace/Hook 地基）：已在工具箱 ✓
 - **cc-config**（六层配置 + CLAUDE.md 诊断）：已在工具箱 ✓

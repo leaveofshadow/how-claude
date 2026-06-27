@@ -6,7 +6,7 @@ trigger: hcc-sales/销售部/画像/市场验证
 
 # hcc-sales — 销售部协议
 
-> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `hcc-org/SKILL.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 hcc-org/SKILL.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
+> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `charter.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 charter.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
 
 ## §1 部门职责
 
@@ -33,11 +33,11 @@ trigger: hcc-sales/销售部/画像/市场验证
 
 ## §4 交接协议
 
-参见 hcc-org/SKILL.md §2 RACI 总表（销售部行）。销售部对 state 字段只读（运维部 owns 写，hcc-org §4.3）；销售部产出落盘 artifacts（sales-*.md，hcc-org §3.1）供决策部 review / 产品部需求输入接力。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
+参见 charter.md §2 RACI 总表（销售部行）。销售部对 state 字段只读（运维部 owns 写，hcc-org §4.3）；销售部产出落盘 artifacts（sales-*.md，hcc-org §3.1）供决策部 review / 产品部需求输入接力。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
 
 ## §5 业务能力
 
-参见 hcc-org/SKILL.md §5 工具箱映射表（销售部行）。
+参见 charter.md §5 工具箱映射表（销售部行）。
 
 - **cc-loop**（循环方法论）：已在工具箱 ✓ —— plan/review 回环。
 

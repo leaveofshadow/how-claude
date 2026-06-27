@@ -6,7 +6,7 @@ trigger: hcc-dev/开发部/实施/交付
 
 # hcc-dev — 开发部协议
 
-> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `hcc-org/SKILL.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 hcc-org/SKILL.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
+> **定位**：hcc 5 部门之一（决策/产品/开发/运维/销售）。引用 `charter.md` §1 协作总则 + §2 RACI 总表作为协作地基。protocol_version 闭环见 charter.md frontmatter（M2 pipeline-state.cmdInit 读取，记录到 `pipeline-state.protocol_version_read`）。
 
 ## §1 部门职责
 
@@ -30,11 +30,11 @@ trigger: hcc-dev/开发部/实施/交付
 
 ## §4 交接协议
 
-参见 hcc-org/SKILL.md §2 RACI 总表（开发部行）。开发部对 state 字段只读（运维部 owns 写，hcc-org §4.3）；开发部产出落盘 artifacts（dev-*.md，hcc-org §3.1）供决策部 review / 运维部保活接力。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
+参见 charter.md §2 RACI 总表（开发部行）。开发部对 state 字段只读（运维部 owns 写，hcc-org §4.3）；开发部产出落盘 artifacts（dev-*.md，hcc-org §3.1）供决策部 review / 运维部保活接力。回环上限 max_iteration 见 checkpoint.guardrails（hcc-org 总则5）。
 
 ## §5 业务能力
 
-参见 hcc-org/SKILL.md §5 工具箱映射表（开发部行）。
+参见 charter.md §5 工具箱映射表（开发部行）。
 
 - **cc-loop**（worktree SOP + 循环合同 + 护栏三件套）：已在工具箱 ✓ —— §2 plan 流程来源。
 

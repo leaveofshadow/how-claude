@@ -26,12 +26,14 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-// ── 路径常量 ──
-// 脚本位于 .claude/skills/hcc-org/scripts/，回退两级到 skills 根（5 部门 + hcc-org 同级）
-const SKILL_ROOT = path.resolve(__dirname, '..', '..');
-const HCC_ORG_DIR = path.join(SKILL_ROOT, 'hcc-org');
-const HCC_ORG_SKILL = path.join(HCC_ORG_DIR, 'SKILL.md');
-const DEPTS = ['hcc-decision', 'hcc-product', 'hcc-dev', 'hcc-ops', 'hcc-sales'];
+// ── 路径常量（阶段5 协议降级：hcc-org/scripts/ → contracts/scripts/，协议文档 → contracts/）──
+// 脚本位于 .claude/contracts/scripts/，回退两级到 contracts 根（协议文档家）
+const CONTRACTS_ROOT = path.resolve(__dirname, '..'); // contracts/scripts/ → contracts/（回退 1 级）
+const CHARTER_MD = path.join(CONTRACTS_ROOT, 'charter.md');           // 原 HCC_ORG_SKILL（hcc-org/SKILL.md 降级为 charter.md）
+const CHARTER_DEEP = path.join(CONTRACTS_ROOT, 'references', 'charter-deep.md');
+const DEPTS = ['decision', 'product', 'dev', 'ops', 'sales'];         // contract-{部门}.md（去 hcc- 前缀）
+// 兼容旧引用（test②③ 用 HCC_ORG_SKILL 读 charter；test④ 不再用 HCC_ORG_DIR walkDir）
+const HCC_ORG_SKILL = CHARTER_MD;
 const VALID_RACI = ['R', 'A', 'C', 'I'];
 // 销售自治节点：A 由 §2.1「无 A 行→决策部临时 A」兜底规则接管，表格不显式标 A
 const SALES_AUTONOMOUS = new Set(['N1', 'N2', 'N8']);
@@ -91,13 +93,15 @@ function parseNodeRaciTable(content) {
 
 // ── 测试① 5 部门 SKILL.md §4 引用 hcc-org §2 RACI 锚点（M3 闸2 的一致性回归）──
 function testDepartmentsReferenceRaci() {
-  const ANCHOR = '参见 hcc-org/SKILL.md §2 RACI 总表';
+  // 阶段5 协议降级：5 部门 skill → contract-{部门}.md；锚点暂保留旧文本（hcc-org/SKILL.md），
+  // 阶段F 改 5 contract 锚点为 charter.md 时同步更新此处 ANCHOR。
+  const ANCHOR = '参见 charter.md §2 RACI 总表';
   for (const d of DEPTS) {
-    const skillFile = path.join(SKILL_ROOT, d, 'SKILL.md');
-    assert(fs.existsSync(skillFile), `${d}/SKILL.md 存在`);
-    const content = fs.readFileSync(skillFile, 'utf8');
+    const contractFile = path.join(CONTRACTS_ROOT, `contract-${d}.md`);
+    assert(fs.existsSync(contractFile), `contract-${d}.md 存在`);
+    const content = fs.readFileSync(contractFile, 'utf8');
     assert(content.includes(ANCHOR),
-      `${d}/SKILL.md §4 引用 hcc-org RACI 锚点「${ANCHOR}」`);
+      `contract-${d}.md §4 引用 RACI 锚点「${ANCHOR}」（阶段F 改 charter.md 时同步更新）`);
   }
 }
 
@@ -137,27 +141,19 @@ function testConflictArbitrationSection() {
     'hcc-org §2.1 冲突仲裁段存在（[A-8] 仲裁基准执行机制）');
 }
 
-// ── 测试④ hcc-org/ 全目录 0 state writer 函数名（[A-5/B-4] 纯引用不变量）──
+// ── 测试④ 协议文档 0 state writer 函数名（[A-5/B-4] 纯引用不变量）──
+// 阶段5 协议降级：原 walkDir(hcc-org/) 改为检查降级后的协议文档（charter.md + charter-deep.md，
+// 即原 hcc-org/SKILL.md + references/org-protocol-deep.md）。5 contract + org-claude.md 不在此列
+//（部门协议 / 实施者契约各自范围）。scripts/ 工具已迁 contracts/scripts/，不属协议文档。
 function testNoStateWriterDuplication() {
-  const files = walkDir(HCC_ORG_DIR);
-  assert(files.length >= 2,
-    `hcc-org/ 至少含 SKILL.md + references/（实际 ${files.length} 文件）`);
-  // state writer 函数符号（调用名/实现逻辑），hcc-org 只可提脚本职责名，不得出现函数符号
-  // 注：shift-direction.js 等是「脚本文件名引用」（职责），非函数符号，故不在禁列
+  const files = [CHARTER_MD, CHARTER_DEEP].filter((f) => fs.existsSync(f));
+  assert(files.length >= 1,
+    `charter 协议文档存在（charter.md + charter-deep.md，实际 ${files.length} 文件）`);
   const FORBIDDEN = /atomicWriteJSON|writeFileSync|require.*init-state/;
   for (const f of files) {
-    // 排除测试文件自身：它含 FORBIDDEN regex 字面量是为「定义禁令」，非「违反禁令」。
-    // 测试④ 的本意是「hcc-org 协议文档（SKILL.md + references）不复制 state writer 函数逻辑」，
-    // 测试文件是验证工具，不在协议文档范畴。此排除修正自指假阳性，非放水。
-    if (path.resolve(f) === path.resolve(__filename)) continue;
-    // 排除 scripts/ 工具脚本（M6 hcc-preflight.js 等）：工具实现写自己的产物
-    // （如 preflight 写 env-scan.json 报告，非 pipeline-state），非协议文档复制 state writer。
-    // 纯引用约束（[A-5/B-4]）针对协议文档（SKILL.md + references/*.md），非工具脚本。
-    const rel = path.relative(HCC_ORG_DIR, f);
-    if (rel.startsWith('scripts' + path.sep)) continue;
     const content = fs.readFileSync(f, 'utf8');
     assert(!FORBIDDEN.test(content),
-      `${path.relative(SKILL_ROOT, f)} 无 state writer 函数名复制（[A-5/B-4] 纯引用，真理源在 schema 文档）`);
+      `${path.relative(CONTRACTS_ROOT, f)} 无 state writer 函数名复制（[A-5/B-4] 纯引用，真理源在 schema 文档）`);
   }
 }
 

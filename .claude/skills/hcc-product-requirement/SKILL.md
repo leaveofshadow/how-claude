@@ -1,9 +1,11 @@
 ---
-name: venture-product-requirement
+name: hcc-product-requirement
 description: 产品部·需求分析。N3.5 节点产出工程需求规格六块（§1 背景与目标/§2 范围与边界/§3 功能需求/§4 非功能需求/§5 验收标准/§6 里程碑）。引用 grill-me 打磨 §3 功能需求清晰度/可验证性/无歧义。
 ---
 
-# venture-product-requirement —— N3.5 工程需求规格（IEEE 830 轻量）
+> **部门协议引用**（hcc 阶段5 协议降级）：执行前 Read `.claude/contracts/contract-product.md`（产品部协作契约，含 RACI 归属 + 与开发/运维交接锚点）。
+
+# hcc-product-requirement —— N3.5 工程需求规格（IEEE 830 轻量）
 
 > 触发词：`需求分析` / `PRD` / `N3.5` / `需求规格`
 > 层级：cc-venture 层3 venture pipeline 节点 N3.5 实装。
