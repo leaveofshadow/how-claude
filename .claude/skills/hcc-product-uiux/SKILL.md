@@ -91,4 +91,4 @@ N7 迭代时：已 pull 的 slug 提供 Style foundations + Quality gates，UIUX
   - 默认 slug 集见 §4（minimal / shadcn / glassmorphism / brutalism / editorial / neumorphism / luxury）。
   - preflight 告警级 optional（required:false，N7 才用；hcc-org §0 自检 + `hcc-dependencies.json` bergside-type-ui 条目）。
 - 关联骨架：`hcc-product/SKILL.md` §5（本 skill 被其名称引用）。
-- 产出落盘：hcc-org/SKILL.md §3.3 `.hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md`。
+- 产出落盘：charter.md §3.3 `.hcc/product/venture-product-uiux/N7_迭代优化-uiux_spec.md`。

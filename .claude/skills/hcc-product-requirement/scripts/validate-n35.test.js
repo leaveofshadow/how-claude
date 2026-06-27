@@ -2,7 +2,7 @@
 /**
  * validate-n35.test.js —— validate-n35.js 语义校验闸测试（P1.1 TDD）
  *
- * 固化 venture-product-requirement SKILL.md §4 六闸为【可执行闸】：
+ * 固化 hcc-product-requirement SKILL.md §4 六闸为【可执行闸】：
  *   合格 N3.5 产物 → exit 0（核心：空壳六块骗不过）
  *   各闸残缺     → exit 1 + stderr 精确指认失败闸
  *
@@ -25,7 +25,7 @@ function assert(cond, msg) {
   if (cond) { passed++; } else { failed++; console.error('  ✗ ' + msg); }
 }
 
-// ── 合格模板（参考 venture-product-requirement SKILL.md §1-§6 示例）──
+// ── 合格模板（参考 hcc-product-requirement SKILL.md §1-§6 示例）──
 function goodPrd() {
   return `# N3.5 需求规格
 
