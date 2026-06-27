@@ -38,15 +38,19 @@ test('write-artifact 写到 dag exit_condition 规定路径（N1）', () => {
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
 
-test('write-artifact placeholder 节点（N4 无 artifact 路径）→ exit 1', () => {
+test('write-artifact 节点无 artifact 路径 → exit 1', () => {
   const tmp = mkTmp();
   try {
     const dagCopy = path.join(tmp, 'dag.json');
     fs.copyFileSync(DAG, dagCopy);
+    // mock：改 dagCopy N4 exit_condition 为无 artifact 路径（Task 2 后 N4 已有路径，需 mock 造无路径场景）
+    const dagObj = JSON.parse(fs.readFileSync(dagCopy, 'utf8'));
+    dagObj.nodes.find((n) => n.id === 'N4').exit_condition = '占位节点无 artifact 路径（mock）';
+    fs.writeFileSync(dagCopy, JSON.stringify(dagObj), 'utf8');
     const inFile = path.join(tmp, 'c.md');
     fs.writeFileSync(inFile, 'x', 'utf8');
     const r = spawnSync('node', [SCRIPT, '--node', 'N4', '--in', inFile, '--dag', dagCopy], { cwd: tmp, encoding: 'utf8' });
-    assert.strictEqual(r.status, 1, 'N4 placeholder 无 artifact 路径 → exit 1');
+    assert.strictEqual(r.status, 1, 'N4 mock 无 artifact 路径 → exit 1');
     assert.ok((r.stderr || '').includes('无 artifact 路径'), `stderr 应含"无 artifact 路径"，实际 ${(r.stderr || '').trim()}`);
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
