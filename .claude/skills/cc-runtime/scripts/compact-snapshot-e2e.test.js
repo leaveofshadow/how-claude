@@ -150,3 +150,52 @@ test('健壮性：direction.json 损坏 → 静默 exit 0 + 无 Block⑤', { ski
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+// ── hcc 目录统一（gap ②）：.hcc/state 优先于 .venture/state ──
+// 改造点：readVentureState 改目录级 resolve（.hcc/state 优先 + .venture/state fallback），
+// 对齐 pipeline-state.js:resolveStateRootForRead / shift-direction.js:resolveRoot（阶段2）。
+// 验证：.hcc/state + .venture/state 同时存在 → 读 .hcc/state（新路径），忽略 .venture/state（旧）。
+test('hcc 统一（gap②）：.hcc/state 优先于 .venture/state → snapshot 用 .hcc 数据', { skip: !HAS_HOOK && '全局 hook 不存在' }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hcchcc-'));
+  try {
+    makeProjectRoot(root);
+    // 构造 .hcc/state（新路径，direction v3 + checkpoint hcc-node）
+    const hccDir = path.join(root, '.hcc', 'state');
+    fs.mkdirSync(hccDir, { recursive: true });
+    fs.writeFileSync(path.join(hccDir, 'direction.json'), JSON.stringify({
+      current_version: 3,
+      status: 'active',
+      current_path: '.hcc/decisions/v3/',
+      superseded_paths: [],
+    }));
+    fs.writeFileSync(path.join(hccDir, 'checkpoint.json'), JSON.stringify({
+      current_node: 'hcc-node',
+      iteration: 7,
+      progress_percent: 80,
+      direction_version: 3,
+    }));
+    // 旧 .venture/state（direction v1，应被忽略——证明优先读 .hcc/state）
+    const venDir = path.join(root, '.venture', 'state');
+    fs.mkdirSync(venDir, { recursive: true });
+    fs.writeFileSync(path.join(venDir, 'direction.json'), JSON.stringify({
+      current_version: 1,
+      status: 'active',
+      current_path: '.venture/artifacts/v1/',
+    }));
+
+    const tp = writeTranscript(root);
+    const r = runHook(root, tp);
+    assert.strictEqual(r.status, 0, `write.js 应 exit 0（实际 ${r.status}）stderr=${r.stderr}`);
+
+    const snap = readSnapshot(root);
+    // 优先读 .hcc/state（v3 / hcc-node）
+    assert.ok(snap.includes('## venture 方向状态'), '应含 Block⑤ 标题');
+    assert.ok(snap.includes('v3 (active)'), '应读 .hcc/state 的 v3（非 .venture v1）');
+    assert.ok(snap.includes('hcc-node'), '应读 .hcc/state 的节点');
+    assert.ok(snap.includes('第 7 轮 · 80%'), '应读 .hcc/state 的迭代/进度');
+    // 反证：不读 .venture/state 的 v1
+    assert.ok(!snap.includes('v1 (active)'), '不应读 .venture/state 的 v1（fallback 顺序：.hcc 优先）');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
