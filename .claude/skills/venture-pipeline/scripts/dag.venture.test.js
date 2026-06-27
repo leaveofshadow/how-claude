@@ -41,11 +41,13 @@ test('主线 N1/N2/N3/N3.5 真 skill 名', () => {
   assert.strictEqual(nodeById['N3.5'].skill, 'hcc-product-requirement', 'N3.5 需求规格 skill（M1 插入）');
 });
 
-// ── 占位节点 N4/N5/N6/N8 skill=placeholder（C7：拓扑运行 ≠ 业务运行）+ N7 装配 hcc-product-uiux ──
-test('占位节点 N4/N5/N6/N8 skill=placeholder（C7）+ N7 装配 hcc-product-uiux', () => {
-  for (const id of ['N4', 'N5', 'N6', 'N8']) {
+// ── 占位节点 N4/N6/N8 skill=placeholder（C7）+ N5 装配 hcc-product-validate + N7 装配 hcc-product-uiux ──
+test('占位节点 N4/N6/N8 skill=placeholder（C7）+ N5 装配 hcc-product-validate + N7 装配 hcc-product-uiux', () => {
+  for (const id of ['N4', 'N6', 'N8']) {
     assert.strictEqual(nodeById[id].skill, 'placeholder', `${id}.skill === placeholder`);
   }
+  // N5 装配 hcc-product-validate（gap① 2026-06-28 实装，N5 验证 skill，原 C7 占位升级）
+  assert.strictEqual(nodeById.N5.skill, 'hcc-product-validate', 'N5.skill === hcc-product-validate（gap① 实装）');
   // N7 装配 hcc-product-uiux（hcc-org §3.3 N7 产物归属；2026-06-24 装配，非占位）
   assert.strictEqual(nodeById.N7.skill, 'hcc-product-uiux', 'N7.skill === hcc-product-uiux（已装配）');
 });

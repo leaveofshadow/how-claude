@@ -39,8 +39,8 @@
     {
       "id": "N5",
       "type": "task",
-      "skill": "placeholder",
-      "exit_condition": "artifact .hcc/product/venture-product/N5_验证_decision.md 存在且含关键词 验证（venture-product 验证决策；C7 占位：skill=placeholder，HG2 之后最小闭环外）"
+      "skill": "hcc-product-validate",
+      "exit_condition": "artifact .hcc/product/hcc-product-validate/N5_验证_decision.md 存在且含关键词 走偏判定（hcc-product-validate N5 验证 decision：设计验证 AC{n} 走偏判定 R3.2 + 市场验证移交销售部 A 归属隔离；可证伪：fs.existsSync + 关键词 includes；gap① 2026-06-28 实装，原 C7 占位 venture-product 升级）"
     },
     {
       "id": "N6",
