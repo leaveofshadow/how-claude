@@ -45,8 +45,8 @@
     {
       "id": "N6",
       "type": "task",
-      "skill": "placeholder",
-      "exit_condition": "artifact .hcc/product/venture-product/N6_产品化_spec.md 存在且含关键词 产品化（venture-product 产品化；C7 占位：skill=placeholder，最小闭环外）"
+      "skill": "hcc-product-productize",
+      "exit_condition": "artifact .hcc/product/hcc-product-productize/N6_产品化_spec.md 存在且含关键词 产品化（hcc-product-productize N6 产品化 spec：条目继承 N3.5 PRD R{n}/AC{n} + impl_boundary 边界仲裁 product R/dev C + 收益转化三维度 user_value/biz_value/cost_cap 可证伪；charter §2.1 N6；可证伪：fs.existsSync + 关键词 includes；gap① 2026-06-28 实装，原 C7 占位升级）"
     },
     {
       "id": "N7",
