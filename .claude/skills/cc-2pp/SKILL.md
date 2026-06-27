@@ -254,6 +254,19 @@ loadHccConfig()（项目级 .claude/hcc-config.json > 用户级 ~/.claude/ > 内
 - **可逆性**（嫁接 α）：plan→2pp 升级（已有单方案作主力方案进对抗，产出不浪费）；2pp→plan 降级（已有方案直接进 Phase 4）
 - **假设 2 不放水**：plan mode 简化只省 agent 数 + web 轮次，**不省 Explore（0a 必留）+ Claude 实施者度量约束**；minimal 档 50-decision.md 必标 `assumption2_risk: high` 联动 cc-loop 加严验证闸
 
+### 权限执行（`permission_scope`，需求 3 执行侧）
+
+Phase 4c 衔接下游（cc-loop / 执行）按 `hcc-config.json` 的 `permission_scope` 决定（需求 3 落地）：
+
+| `permission_scope` | Phase 4c 行为 | 对应需求 3 |
+|---|---|---|
+| `workspace` | Phase 4 → **自动衔 cc-loop**（全自动，不 ask user question）| 全自动模式 |
+| `approval-required`（默认）| Phase 4 → **ExitPlanMode 审批**（plan 呈现，用户批准才执行）→ 批准后 cc-loop | 重大决策询问模式 |
+| `read-only` | Phase 4 → **停（plan 只读展示）**，用户手动复制去执行 | 最保守 |
+
+> cc-2pp 读 `permission_scope`（resolveMode 一并解析），Phase 4c 按值决定衔接。`approval-required` 调 Claude 内置 ExitPlanMode（审批门）；`workspace` 全自动衔接 cc-loop；`read-only` 停在展示。
+> **"重大决策动态判定"**（只重大才审批，非全局 approval-required）是增强，留后续——当前 permission_scope 是全局配置（所有 plan 同权限）。
+
 ---
 
 ## 失败重试机制（Retry）
