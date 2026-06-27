@@ -183,10 +183,10 @@ protocol_version: "D11-2026-06-22"
 | **N3.5 需求规格** | **product** | **hcc-product-requirement** | **prd** | `N3.5_需求规格_prd.md` |
 | (变更日志) | product | hcc-product-requirement | changelog | `N3.5_需求变更_changelog.md` |
 | N4 原型 | dev | hcc-dev（引用 executor/superpowers） | plan | `N4_原型_plan.md` |
-| N5 验证 | product | venture-product | decision | `N5_验证_decision.md` |
-| N6 产品化 | product | venture-product | spec | `N6_产品化_spec.md` |
+| N5 验证 | product | hcc-product-validate | decision | `N5_验证_decision.md` |
+| N6 产品化 | product | hcc-product-productize | spec | `N6_产品化_spec.md` |
 | N7 迭代优化 | product | hcc-product-uiux | spec | `N7_迭代优化-uiux_spec.md` |
-| N8 规模化 | sales | venture-sales-scale | plan | `N8_规模化_plan.md` |
+| N8 规模化 | sales | hcc-sales-scale | plan | `N8_规模化_plan.md` |
 
 > **agent 层前缀混合**（charter L116 (b) Boss 定）：`venture-*`（product 三件 + sales judge/scale）+ `hcc-*`（decision/dev）。decision/dev 无 venture 业务 skill = 设计正确（这两个部门本质「引用外部生态」，非缺口），不补自建方法论。
 
@@ -238,7 +238,7 @@ protocol_version: "D11-2026-06-22"
 | 部门 | 节点 | 工具箱技能（已 installed） | 覆盖度 | 缺口（层3 待装配） |
 |------|------|--------------------------|:------:|------------------|
 | **决策部** | N3/N4/HG | cc-2pp（判官小组 + 对抗验证）/ cc-goal（终态条件）/ cc-orchestration（编排决策树） | ✓ 厚实 | 无（venture-sales-judge 系统级 installed，层3 装配承接） |
-| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | venture-product（产品设计）/ hcc-product-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
+| **产品部** | N5/N7/N8 | cc-loop（循环工程方法论，非产品技能） | ❌ 真空 | hcc-product-validate/productize（产品验证/产品化）/ hcc-product-uiux（UIUX 设计）—— 层3 新建（charter L80 真空标注） |
 | **开发部** | 实施节点 | cc-loop（worktree SOP + 循环合同 + 护栏三件套）/ executor（OMC autopilot/ralph，外部 agent）/ superpowers:* 系列（外部 skill 生态） | ⚠️ 中等 | 代码质量/测试/重构专项（依赖外部 skill 生态，非本项目技能） |
 | **运维部** | 层1 贯穿（横切） | cc-runtime（state/trace/Hook 地基）/ cc-config（六层配置 + CLAUDE.md 诊断）/ cc-context（上下文健康） | ✓ 厚实 | 无（三者覆盖 7×24 保活全链路） |
 | **销售部** | N1/N2/N6 | venture-sales-judge（系统级 installed skill，创业评估师）/ cc-loop（循环方法论） | ❌ 真空 | venture-sales-judge 层3 装配承接（N1 调查/N2 竞品/N6 画像无本项目技能）+ 销售技能层3 新建（charter L80 真空） |
