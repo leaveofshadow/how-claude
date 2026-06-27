@@ -57,8 +57,8 @@
     {
       "id": "N8",
       "type": "task",
-      "skill": "placeholder",
-      "exit_condition": "artifact .hcc/sales/venture-sales-scale/N8_规模化_plan.md 存在且含关键词 规模化（venture-sales-scale 规模化；C7 占位：skill=placeholder，出口最小闭环外）"
+      "skill": "hcc-sales-scale",
+      "exit_condition": "artifact .hcc/sales/hcc-sales-scale/N8_规模化_plan.md 存在且含关键词 规模化（hcc-sales-scale N8 规模化 plan：收益转化五要素 pricing_model/price_anchor/payment_channel/unit_economics(LTV/CAC)/milestones + 市场规模化四杠杆 + 销售自治 charter §2.1 N8 销售部 R 决策部 C + scale_achieved 三硬标准；可证伪：fs.existsSync + 关键词 includes；gap① 2026-06-28 实装，原 C7 占位升级）"
     }
   ],
   "edges": [
