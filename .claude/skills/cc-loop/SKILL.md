@@ -109,6 +109,14 @@ REPORT  → 输出什么？（Slack通知 / 总结报告）
 2. **无进展检测** — 连续 K 次相同错误/空diff → 停止
 3. **预算上限** — token 或 $ 上限，用完即停
 
+### plan mode 加严验证闸（cc-2pp 联动）
+
+上游 plan 来源决定验证闸严格度（读 cc-2pp 产出的 50-decision.md `mode` 标注）：
+- **2pp mode plan**（`mode=2pp`）：判官小组 + 对抗已验证 → 验证闸按正常标准
+- **plan mode plan**（`mode=plan`，无对抗验证）→ **验证闸加严**：每步验证命令必跑（不可跳）+ 输出对比更细（防单方案盲点漏到执行层）；`granularity=minimal` 标 `assumption2_risk: high` 时进一步加严（多跑 1 轮 smoke）
+
+> 理由：cc-2pp plan mode 砍了判官小组 + 对抗（假设 2 对策削弱），决策层信任度低于 2pp。循环执行层用更严验证闸补偿——不让单方案的盲点漏到生产。
+
 ## 锚文件体系
 
 循环的稳定性来自持久化的项目知识：
