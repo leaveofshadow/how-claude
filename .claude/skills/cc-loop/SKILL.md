@@ -70,7 +70,7 @@ SCOPE   → 作用域？（我的PR / repo X / src/目录）
 ACTION  → 每次做什么？（跑测试 / 修复lint / 回复review）
 BUDGET  → 预算约束？（最多3个agent / 50k tokens / $5）
 STOP    → 什么时候停？（全绿 / 10次迭代 / 预算用完）
-REPORT  → 输出什么？（Slack通知 / 总结报告）
+REPORT  → 输出什么？（Slack通知 / 总结报告 + 信号触发蒸馏 episodes.json，见下「经验蒸馏」）
 ```
 
 ## 三变体速查
@@ -86,17 +86,17 @@ REPORT  → 输出什么？（Slack通知 / 总结报告）
 
 > 300s 间隔是**反模式** — 缓存冷了但没省频率。推荐最小间隔 60s（热缓存）或直接用一次性触发。
 
-## 闭环反馈：循环的灵魂
+## 闭环反馈（验证闸驱动循环收敛）
 
 ```
 开环循环:  agent写代码 → agent说"好了" → 停
   → 只适合 demo，生产环境不要用
 
 闭环循环:  agent写代码 → 跑测试 → 读结果 → 不通过则修复 → 重复
-  → 可以上线，前提是测试覆盖足够
+  → 可以上线，前提是测试覆盖达标（关键路径全绿 + 验证闸可证伪）
 
 审查循环:  闭环 + 后台审查agent持续喂反馈
-  → 最适合长时间自主工作
+  → 适合长时间自主工作（闭环 + 后台审查反馈）
 ```
 
 **核心原则：循环的可信度取决于里面有什么在说"不"。**
@@ -108,6 +108,36 @@ REPORT  → 输出什么？（Slack通知 / 总结报告）
 1. **最大迭代数** — 超过 N 次强制停止
 2. **无进展检测** — 连续 K 次相同错误/空diff → 停止
 3. **预算上限** — token 或 $ 上限，用完即停
+
+## 经验蒸馏（信号触发 → episodes.json，cc-runtime 联动）
+
+循环每轮按**信号**触发经验沉淀（Reflexion 式，非无差别 append），写入 `.hcc/state/episodes.json`（三段式 schema v2，cc-runtime `init-episodes.js` 初始化；设计见 `.hcc/decisions/2026-06-28-episodes-distill/50-decision.md`）：
+
+| 信号 | 蒸馏动作 | 写入段 |
+|---|---|---|
+| `success`（验证闸过 / 里程碑达成）| 提取可复用事实 | `verified_facts[]` |
+| `fail` / `stagnation`（验证闸挂 / 无进展）| 提取踩坑 + 反模式 | `lessons[]` |
+| 无信号 | 不写（防噪声）| — |
+
+**蒸馏 prompt**（注入执行循环的 agent；Reflexion 反思 + A-MAC 5 因子自检）：
+```
+本轮信号：{success|fail|stagnation} + trace 关键步
+对照 {goal} 提取（按信号，无信号不写）：
+  success → verified_facts：本轮确认的可复用事实（带 evidence + confidence）
+  fail    → lessons：本轮踩的坑 + anti_pattern（怎么避免）
+A-MAC 5 因子自检（低质丢）：
+  · 未来效用：下次同类节点还会用到吗？否→丢
+  · 语义新颖：与 episodes.json 已有条目重复吗？重复→合并(occurrence+1)非新增
+  · 事实置信：验证过(high)/推测(low，标注)
+输出 append episodes.json，过 utility 阈值才入。
+```
+
+**机制分工**（hook 做机制 / agent 做判断，P1）：
+- agent 蒸馏写 `verified_facts`/`lessons`（判断性，信号触发）
+- `last_run` 由 compact-snapshot hook 机械填（M2，从 checkpoint/transcript 提取 node/iter/result）
+- 注入由 compact-snapshot 关键词筛子集（M3，Voyager 式，替 FIFO 全量），低 utility → evict
+
+判据（可证伪）：信号=枚举{success,fail,stagnation}；utility=数值阈值；confidence=枚举{high,med,low}。
 
 ### plan mode 加严验证闸（cc-2pp 联动）
 
