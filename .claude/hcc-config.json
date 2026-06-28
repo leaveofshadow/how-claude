@@ -4,6 +4,7 @@
   "plan_granularity": "moderate",
   "permission_scope": "approval-required",
   "overrides": {
-    "allow_runtime_switch": true
+    "allow_runtime_switch": true,
+    "fallback_auto_judge": false
   }
 }

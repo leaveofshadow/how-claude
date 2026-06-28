@@ -267,6 +267,38 @@ Phase 4c 衔接下游（cc-loop / 执行）按 `hcc-config.json` 的 `permission
 > cc-2pp 读 `permission_scope`（resolveMode 一并解析），Phase 4c 按值决定衔接。`approval-required` 调 Claude 内置 ExitPlanMode（审批门）；`workspace` 全自动衔接 cc-loop；`read-only` 停在展示。
 > **"重大决策动态判定"**（只重大才审批，非全局 approval-required）是增强，留后续——当前 permission_scope 是全局配置（所有 plan 同权限）。
 
+### M2 增强：fallback β 自动判断（opt-in，默认关）
+
+无配置 fallback 时，可选启用 β 特征向量自动判断（代替纯 AskUserQuestion，提升首次体验）：
+
+- **开启**：`hcc-config.json` `overrides.fallback_auto_judge: true`（默认 `false`，opt-in）
+- **特征向量**（Phase 0a 后提取，β 派 10-plan-beta.md）：
+  | 特征 | 倾向 2pp | 倾向 plan | 权重 |
+  |---|---|---|---|
+  | F1 技术选型 | 涉及核心选型 | 无选型用现有栈 | 3 |
+  | F2 未知数 | 多未知(>2) | 方向明(≤1) | 2 |
+  | F3 影响面 | 跨模块/架构级 | 单文件/局部 | 3 |
+  | F4 失败成本 | 错了难逆(架构) | 易回滚(局部) | 2 |
+  | F5 触发词 | "复杂/对抗/范式" | "简单/快速/验证" | 1 |
+- **映射**：`score_2pp = Σ(命中特征权重)`；`≥5 → 2pp`（高置信）；`3-4 → 2pp`（中，展示依据让用户确认）；`≤2 → plan`；`0 → plan`（强，直接走）
+- **边界强制**：用户明说"技术选型/架构决策/范式转移" → 强制 2pp；"轻量/快速/就改一下" → 强制 plan（不论 score）
+- **可证伪**：判断必附依据（哪几个 F 命中 + score），用户一眼能看出判得对不对；判错用户可覆盖
+
+> opt-in 设计：默认关（fallback 纯 AskUserQuestion，保 α 派控制权）；用户配 `fallback_auto_judge: true` 才启用 β 自动判断（省心）。这是 γ 配置 + α 手动 + β 自动的三者融合点。
+
+### 需求 3 增强：重大决策动态判定（`permission_scope: dynamic`）
+
+`permission_scope` 加第 4 值 `dynamic`（重大才审批，非全局）：
+
+| `permission_scope` | 行为 |
+|---|---|
+| `workspace` | 全自动（不问）|
+| `approval-required` | 全审批（每个 plan 都 ExitPlanMode）|
+| `read-only` | 全停展示 |
+| **`dynamic`**（新增）| **按决策重大性动态**：重大决策（score_2pp≥5 或边界强制 2pp）→ ExitPlanMode 审批；非重大（plan mode）→ 自动衔 cc-loop |
+
+> `dynamic` 复用 M2 的特征向量（重大性 = score_2pp≥5）。这样"重大决策询问模式"= `permission_scope: dynamic` + M2 自动判断——两者协同（M2 判重大性，dynamic 按重大性决定审批 vs 自动）。
+
 ---
 
 ## 失败重试机制（Retry）
