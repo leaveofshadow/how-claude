@@ -75,6 +75,28 @@ description: >
 [直接生成可用的 CLAUDE.md]
 ```
 
+## hook 墙 deny 配置（安全，文章 L3#10）
+
+无人值守 loop 是无人值守攻击面。hook 是模型说不过去的墙——settings.json 配 permissions deny + PreToolUse hook 拦不可逆操作：
+
+```json
+{
+  "permissions": {
+    "allow": ["Read(*)", "Bash(npm run test *)"],
+    "deny": ["Bash(git push origin main)", "Bash(rm *)", "Edit(.env)"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [{ "type": "command", "command": "./.claude/hooks/block-dangerous.sh" }] }
+    ]
+  }
+}
+```
+
+**规则**：把人留在合并按钮 + 任何不可逆操作上。deny 列不可逆（rm / git push main / .env）；PreToolUse hook 拦危险命令（block-dangerous.sh，自定义阻断逻辑）。权限每 30 天重审（防 creep）。
+
+判据（可证伪）：settings.json 有 deny 列 + PreToolUse hook；非「注意安全」。
+
 ## 交互风格
 1. 说人话 — 不堆术语
 2. 先诊断后开药 — 先问再推荐
