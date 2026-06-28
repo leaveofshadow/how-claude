@@ -81,3 +81,35 @@ test('Block⑥ 兼容：无 episodes.json → 不输出 Block⑥（零影响非 
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('Block⑥ consolidation：utility 衰减 + evict 低 utility 低 occurrence + 回写 episodes.json', { skip: !HAS_HOOK && '全局 hook 不存在' }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ep6cons-'));
+  const sid = 'verify-block6-cons';
+  try {
+    makeProjectRoot(root);
+    const tp = writeTranscript(root);
+    const stateDir = path.join(root, '.hcc', 'state');
+    fs.mkdirSync(stateDir, { recursive: true });
+    fs.writeFileSync(path.join(stateDir, 'episodes.json'), JSON.stringify({
+      schema_version: 2,
+      verified_facts: [
+        { fact: '高价值', utility: 5, occurrence: 1, ts: 't' },      // 衰减→4，留
+        { fact: '低价值偶发', utility: 1, occurrence: 0, ts: 't' },  // 衰减→0，occ<3，evict
+        { fact: '反复出现', utility: 1, occurrence: 5, ts: 't' },    // 衰减→0，occ≥3，留
+      ],
+      lessons: [],
+      last_run: { node: null, iter: 0, result: null, ts: null },
+      updated_at: 't',
+    }), 'utf8');
+    const r = runHook(root, tp, sid);
+    assert.strictEqual(r.status, 0, `write.js 应 exit 0（实际 ${r.status}）stderr=${r.stderr}`);
+    // 读回写后的 episodes.json（consolidation 已跑）
+    const ep = JSON.parse(fs.readFileSync(path.join(stateDir, 'episodes.json'), 'utf8'));
+    const facts = ep.verified_facts;
+    assert.ok(facts.some(f => f.fact === '高价值' && f.utility === 4), '高价值衰减 5→4 且留');
+    assert.ok(!facts.some(f => f.fact === '低价值偶发'), '低价值偶发 evict（utility→0 + occ<3）');
+    assert.ok(facts.some(f => f.fact === '反复出现'), '反复出现留（occ≥3 即使 utility→0）');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
