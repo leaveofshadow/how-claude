@@ -13,7 +13,7 @@ description: >
 >
 > N7⇄N6 是 loop_back（max_iter=3）收敛回环——每轮迭代的 UIUX 维度由本 skill 支撑。节点执行循环第 2 步「执行 skill」时激活。**作为 N7 专属 skill 进 dag.json skill 字段**（hcc-org §3.3 N7→venture-product-uiux 产物归属；2026-06-24 装配 N7.skill=venture-product-uiux）。"工具箱引用模式"指本 skill 内部引 bergside 67 slug 外部方法论（§1，非内置骨架），非"不进 skill 字段"——旧表述已修正。
 >
-> **方法论来源**（charter 块2，2026-06-22 Boss 三源对比后定）：引 **bergside/awesome-design-skills（Type UI）**——67 个独立设计风格 registry。本 skill 删除原内置方法论骨架（交互流程/信息架构/可用性启发式/视觉规范），改为引用外部深度最佳实践（契合层3「纯引用外部生态、不自创方法论」原则，同 hcc-dev §5 引 superpowers 模式）。
+> **方法论来源**（charter 块2，2026-06-22 Boss 三源对比后定）：引 **bergside/awesome-design-skills（Type UI）**——67 个独立设计风格 registry。本 skill 删除原内置方法论骨架（交互流程/信息架构/可用性启发式/视觉规范），改为引用外部成熟实践（契合层3「纯引用外部生态、不自创方法论」原则，同 hcc-dev §5 引 superpowers 模式）。
 
 ## §1 引 Bergside Type UI（charter 块2）
 

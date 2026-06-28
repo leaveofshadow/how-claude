@@ -40,7 +40,7 @@ protocol_version: "D11-2026-06-22"
 
 ---
 
-## §1 协作总则（5 条，5 部门共同站立的地基）
+## §1 协作总则（6 条，5 部门共同站立的地基）
 
 ### 总则1：部门间不直接对话，经层1 state/direction/trace 交换上下文
 
@@ -61,6 +61,17 @@ protocol_version: "D11-2026-06-22"
 ### 总则5：plan/review 回环上限 max_iteration（checkpoint.guardrails）
 
 部门 plan → 下游 review → 驳回 → 重 plan 的回环**必须**有上限：`checkpoint.guardrails.max_iteration`（state-schema.md §1.1，循环合同护栏一）+ `budget_tokens_cap`（护栏三，token 预算上限）。回环达上限 → 决策部仲裁（§2.1）或上报 boss 换向。防 plan/review 死循环（Ruh 反模式#3 循环检测，00-explore §6.5/§6.6）。iteration 计数由层2 `advance-node.js` handleLoopBack owns（50-decision §八 [B-7] 修复），部门只读不写。
+
+### 总则6：产出术语去模糊化（可证伪约束）
+
+所有部门产出（skills/contracts/scripts/decisions 文档）禁用不可证伪的定性词。判据：每个术语必须能写成「命令+期望输出」或「可枚举检查项」，否则视为模糊词，必须替换为可证伪表述或补操作定义。4 条转化原则（细则 + 全清单见 `contracts/terminology.md`，M1 落地）：
+
+1. **态度/程度词**（最懒/努力/充分/拼命/深入/尽快/合理/适当）→ 替换为行为清单或阈值。例：「充分探索」= 0a 内部 + 0b 外部 ≤15 轮 + 覆盖{关键文件/架构约束/已有决策/能力清单}4 维度。
+2. **比喻词**（一等公民/保姆级/真综合/空中楼阁/灵魂）→ 必须附操作定义。例：「真综合」= 读 N 个 agent 产出文件全文做判断，禁用返回值摘要拼接；无可证伪判据的（空中楼阁/灵魂）删除。
+3. **相对词**（轻量/深度/加严/完整度/系统性/足够/快速）→ 绑定量化阈值或枚举。例：plan vs 2pp mode 由 cc-2pp M2 特征向量 score 决定（≥5→2pp / ≤2→plan），非「轻/重/深」直觉。
+4. **极致词**（最快/最优/最佳/完美）→ 指明可比较维度，表述为「在 X 维度上可比较的优」。
+
+已操作化比喻词（护栏三件套/锚文件/语义锚名/验证闸/可证伪闸）名可留，操作定义锁在 terminology.md。校验：`contracts/scripts/hcc-preflight.js` 扫描纯模糊词清单（M2 落地）+ cc-2pp `_roles/injection-template.md` 注入禁用词段约束 agent。禁令清单单一来源 = `contracts/terminology.md`。
 
 ---
 

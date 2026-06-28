@@ -157,13 +157,38 @@ function testNoStateWriterDuplication() {
   }
 }
 
-// ── main：跑 4 测试，统计 passed/failed，failed>0 → exit(1) ──
+// ── 测试⑤：去模糊化防回归（M2b，charter §1 总则6 + terminology.md §禁令清单）──
+// 断言「无合法语境的纯删除/替换词」在产出文档 0 命中（M3 已清，防回归）。
+// 豁免：terminology.md（禁令清单本身列词）+ charter.md/charter-deep.md（§1 总则6 列词作转化例子）。
+// 这些词（真综合/空中楼阁/灵魂/拼命挖）M3 已全替换或删除，产出文档不该再出现；若未来回归引入即报警。
+function testNoBannedTermsRegression() {
+  const FORBIDDEN = /真综合|空中楼阁|灵魂|拼命挖/;
+  const PROJECT_ROOT = path.resolve(CONTRACTS_ROOT, '..');
+  const EXEMPT = new Set([path.join(CONTRACTS_ROOT, 'terminology.md'), CHARTER_MD, CHARTER_DEEP, path.join(PROJECT_ROOT, 'skills', 'cc-2pp', '_roles', 'injection-template.md')]); // 禁令清单载体（terminology/injection-template）+ 总则6 列词（charter/charter-deep）豁免
+  const hits = [];
+  const scan = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const f of walkDir(dir)) {
+      if (!f.endsWith('.md') || EXEMPT.has(f)) continue;
+      const content = fs.readFileSync(f, 'utf8');
+      const m = content.match(FORBIDDEN);
+      if (m) hits.push(`${path.relative(PROJECT_ROOT, f)}: ${[...new Set(m)].join('/')}`);
+    }
+  };
+  scan(path.join(PROJECT_ROOT, 'skills'));
+  scan(CONTRACTS_ROOT);
+  assert(hits.length === 0,
+    `产出文档 0 命中无合法语境词（真综合/空中楼阁/灵魂/拼命挖，M3 已清防回归）。命中：\n${hits.join('\n')}`);
+}
+
+// ── main：跑 5 测试，统计 passed/failed，failed>0 → exit(1) ──
 function main() {
   const tests = [
     ['测试① 5部门引用RACI锚点', testDepartmentsReferenceRaci],
     ['测试② RACI表结构+R/A基准', testRaciTableCompleteness],
     ['测试③ 冲突仲裁段存在', testConflictArbitrationSection],
     ['测试④ hcc-org零state-writer', testNoStateWriterDuplication],
+    ['测试⑤ 去模糊化防回归', testNoBannedTermsRegression],
   ];
   let passed = 0;
   const failures = [];

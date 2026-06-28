@@ -74,7 +74,7 @@ model: sonnet                    # 可选: sonnet/opus/haiku/inherit
 | **sonnet** | 标准开发任务 | 写代码、调试、测试、重构 |
 | **opus** | 深度分析、架构决策 | 代码审查、安全审计、方案设计 |
 
-### Agent 设计最佳实践
+### Agent 设计设计要点
 
 1. **单一职责** — 一个 agent 做一件事
 2. **限制工具** — 只给必要的工具（安全性+聚焦）
@@ -105,7 +105,7 @@ model: sonnet                    # 可选: sonnet/opus/haiku/inherit
 流程：
   N 个独立方案并行起草
   → 独立 judge 打分
-  → 选最优 + 嫁接次优的优点
+  → 选评分最高方案 + 嫁接次高方案的优点
 
 示例：
   Phase 'Draft': 3 个 agent 独立设计方案
@@ -182,7 +182,7 @@ while (dry < 2) {
 }
 ```
 
-## Team 模式最佳实践
+## Team 模式设计要点
 
 ### 何时需要 Team
 - 3+ 个独立且长期运行的任务
