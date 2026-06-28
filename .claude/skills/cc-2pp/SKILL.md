@@ -398,8 +398,8 @@ retry 规则:
      规则: 无依赖的任务→可进 worktree 并行；并发上限=同时活跃 worktree ≤ 2（非创建配额，多余任务排队等槽位释放）
 ## 执行协议（每一步的验证闸 + 提交/回滚——闭环反馈落地；缺此节=开环不可信）
   ### 验证闸（每个小步骤完成后）: 表格列 |步骤|验证命令/手段|通过判据(可证伪)|失败动作|
-  ### 提交/回滚: 通过闸→conventional commit（一步一commit）；失败→git restore回滚该步重做（不污染历史）；
-     里程碑全闸过→打 tag 作检查点；标注哪些闸需人工确认才提交
+  ### 提交/回滚（git 自动化，不问用户）: 通过闸→编排者**自动** conventional commit（一步一commit）；失败→git restore回滚该步重做（不污染历史）；里程碑全闸过→打 tag。
+     ★ git 规范自动化（用户授权）：commit 本身编排者自动执行，不 ask user（commit≠merge）；**仅** merge/PR/push/reset --hard 等不可逆操作才确认。每里程碑同步 TaskUpdate（pending→completed）。**禁止攒多里程碑后批量问「commit 吗」**——过闸即提交。
 ## 风险清单
 ## 下一步行动
 ```
@@ -546,7 +546,7 @@ Phase 4: Plan Generation（裁决后必做——原则1/4）
     │        · worktree 并发分配（哪些里程碑无依赖→并行；槽位≤2 可排队；操作见 cc-loop Stage4 SOP）
     │    → ★执行协议（闭环反馈落地，缺则开环不可信）:
     │        · 每小步验证闸（命令 + 可证伪判据 + 失败动作）
-    │        · 提交/回滚（一步一 commit / 失败 git restore / 里程碑打 tag / 人工确认点）
+    │        · 提交/回滚（一步一 commit / 失败 git restore / 里程碑打 tag / ★编排者自动 commit 不问用户，仅 merge/PR 等不可逆才确认 / TaskUpdate 同步）
     │    → 风险清单 + 缓解
     │    → 下一步（今天能做的第一件事）
     │  70 必需内容（需求清单——保姆级，详见「细化需求清单」模板）:
