@@ -254,7 +254,16 @@ pipeline 监控实施（cc-loop 验证闸挂 / 流转阻塞 / 用户标记）→
 - 编排者 Claude 做语义分类（读 monitor.js 输出的漂移材料 → 分类需求/技术/架构漂移 → 触发分级）
 - 不把语义塞进脚本规则（变更语义复杂，规则覆盖不全）
 
-**实现形态**（P1 轻量，事件触发非 daemon）：monitor.js 事件触发（用户输入/验证闸挂/advance-node 流转时调用），输出漂移材料给编排者 Claude 分类。**待实现**（下轮 TDD：monitor.js + test）。
+**实现形态**（P1 轻量，事件触发非 daemon）：monitor.js 事件触发（用户输入/验证闸挂/advance-node 流转时调用），输出漂移材料给编排者 Claude 分类。
+
+**已实现**（task #41，`scripts/monitor.js`，18/18 PASS）：
+
+```
+node monitor.js --run <run-dir> [--since <commit>] [--root <dir>] [--stagnation-k <N>]
+```
+- `--run` baseline 决策目录（读 50/60/70 摘要）；`--since` git diff 基线（默认 HEAD = working tree，含 untracked 新文件）；`--root` 项目根；`--stagnation-k` 阻塞线（默认 3）
+
+**机械边界**（关键）：monitor.js 只做客观机械检测——diff 量 + 文件分类（接口 `contract|interface|api|schema|dag|index` / 技术栈 `package.json|go.mod|dag.*.json`）+ stagnation≥K → 输出 `mechanical_hints`（`architecture_drift_signal` / `tech_drift_signal` / `implementation_stall_signal` / `no_drift_detected`）。**语义分类（需求/技术漂移 + 小/中/大量级分级）= `needs_semantic_classification: true`，留编排者 Claude**（不把语义塞脚本规则）。约束（C2 调整）：child_process **仅** execSync 调 `git diff`/`git ls-files`（只读）；禁 spawn skill/禁 vm/eval/禁写 state；跨 skill 只读 cc-runtime `checkpoint.stagnation_count`。
 
 ### 视角组探索 + 调 cc-2pp（M3）
 大变更触发：

@@ -31,13 +31,13 @@
  *
  * 输出：漂移材料 JSON（给编排者 Claude 语义分类）
  *
- * 第一刀（本文件）：readBaseline + readStagnation + truncate + resolveStateRootForRead（纯 fs）
- * 第二刀（待补）：gitDiffStat + detectDrift 聚合 + parseArgs + CLI main
+ * 实现：readBaseline + readStagnation（纯 fs）+ gitDiffStat + detectDrift + parseArgs + CLI
  */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');  // 仅调 git diff（只读检测）；禁 spawn skill/vm/eval，C2 边界见 head
 
 // baseline 摘要默认上限（防 monitor 输出过长；机械层只搬运，语义提取留 Claude）
 const DEFAULT_MAX_CHARS = 2000;
@@ -114,11 +114,208 @@ function readStagnation(root) {
   return result;
 }
 
+// ── 文件分类启发式（机械，不精确——精确语义留 Claude）──
+// 接口文件 = 架构边界/契约定义变更（架构漂移强信号）
+function isInterfaceFile(file) {
+  const norm = file.replace(/\\/g, '/');
+  // 路径段含 contract/interface/api/schema/dag
+  if (/(^|\/)(contracts?|interfaces?|apis?|schemas?|dag)\//i.test(norm)) return true;
+  // 文件名 index/types/interfaces.{js,ts,d.ts}
+  if (/(^|\/)(index|types|interfaces)\.(js|mjs|cjs|ts|tsx|d\.ts)$/i.test(norm)) return true;
+  return false;
+}
+
+// 技术栈文件 = 依赖/构建配置变更（技术漂移信号）
+function isTechStackFile(file) {
+  const base = file.replace(/\\/g, '/').split('/').pop();
+  if (/^(package\.json|go\.mod|cargo\.toml|requirements.*\.txt|pyproject\.toml|poetry\.lock|package-lock\.json|yarn\.lock|pnpm-lock\.yaml|pom\.xml|build\.gradle|composer\.json|gemfile)$/i.test(base)) return true;
+  if (/^dag\..*\.json$/i.test(base)) return true;  // pipeline dag 配置
+  return false;
+}
+
+// git ref 安全校验（防 shell 注入——since 来自 CLI 参数）
+function safeRef(ref) {
+  if (!ref || !/^[A-Za-z0-9._\/-]+$/.test(ref)) return 'HEAD';
+  return ref;
+}
+
+// ── gitDiffStat：git diff --numstat 量 + 文件分类（仅调 git，只读）──
+// cwd 非 git 仓库 / git 不可用 → error 不阻塞（机械层容错，detectDrift 继续）
+function gitDiffStat(cwd, since) {
+  const ref = safeRef(since);
+  const result = {
+    since: ref,
+    changed_files: [],
+    diff_insertions: 0,
+    diff_deletions: 0,
+    diff_lines_total: 0,
+    interface_files_changed: [],
+    tech_stack_files_changed: [],
+    raw_numstat: '',
+    untracked_files: [],
+    error: null,
+  };
+  let raw;
+  try {
+    raw = execSync(`git diff --numstat ${ref}`, { cwd: cwd || '.', encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+  } catch (e) {
+    result.error = `git diff 失败：${(e.stderr || e.message || '').toString().split('\n')[0]}`;
+    return result;
+  }
+  result.raw_numstat = raw.trim();
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue;
+    const parts = line.split('\t');
+    if (parts.length < 3) continue;
+    const add = parts[0];
+    const del = parts[1];
+    const file = parts.slice(2).join('\t');
+    const a = /^\d+$/.test(add) ? parseInt(add, 10) : 0;
+    const d = /^\d+$/.test(del) ? parseInt(del, 10) : 0;
+    result.diff_insertions += a;
+    result.diff_deletions += d;
+    result.diff_lines_total += a + d;
+    result.changed_files.push(file);
+    if (isInterfaceFile(file)) result.interface_files_changed.push(file);
+    if (isTechStackFile(file)) result.tech_stack_files_changed.push(file);
+  }
+
+  // 补 untracked 新文件（git diff HEAD 不含未跟踪文件，但新增模块/接口是重要漂移信号，不可漏）
+  // untracked 无 numstat 统计（未跟踪），insertions/deletions 不计，仅计入 changed_files + 分类
+  try {
+    const untrackedRaw = execSync('git ls-files --others --exclude-standard', { cwd: cwd || '.', encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    for (const f of untrackedRaw.split('\n')) {
+      const file = f.trim();
+      if (!file) continue;
+      result.untracked_files.push(file);
+      if (!result.changed_files.includes(file)) {
+        result.changed_files.push(file);
+        if (isInterfaceFile(file)) result.interface_files_changed.push(file);
+        if (isTechStackFile(file)) result.tech_stack_files_changed.push(file);
+      }
+    }
+  } catch (e) {
+    // untracked 读取失败不阻塞（diff 部分仍有效）
+  }
+  return result;
+}
+
+// ── detectDrift：聚合 baseline + stagnation + diff → 漂移材料 ──
+// ★ 机械只检测客观信号，语义分类（需求/技术漂移 + 小/中/大分级）留编排者 Claude
+//   mechanical_hints = 机械可判的客观信号特征（非语义分级）：
+//     architecture_drift_signal —— 接口/契约文件变更（架构边界动）
+//     tech_drift_signal         —— 技术栈文件变更
+//     implementation_stall_signal — stagnation ≥ K（验证闸挂隐式信号）
+//     no_drift_detected         —— 无变更 + 无 stagnation
+function detectDrift(opts) {
+  const runDir = opts && opts.runDir;
+  const root = (opts && opts.root) || '.';
+  const since = opts && opts.since;
+  const stagnationK = (opts && typeof opts.stagnationK === 'number') ? opts.stagnationK : 3;
+  const maxChars = (opts && typeof opts.maxChars === 'number') ? opts.maxChars : DEFAULT_MAX_CHARS;
+
+  const baseline = readBaseline(runDir, { maxChars });
+  const stagnation = readStagnation(root);
+  const diff = gitDiffStat(root, since);
+
+  const stagnationBlocked = (stagnation.stagnation_count != null && stagnation.stagnation_count >= stagnationK);
+  const mechanical_signals = {
+    diff_lines_total: diff.diff_lines_total,
+    diff_insertions: diff.diff_insertions,
+    diff_deletions: diff.diff_deletions,
+    changed_files_count: diff.changed_files.length,
+    interface_files_changed: diff.interface_files_changed,
+    tech_stack_files_changed: diff.tech_stack_files_changed,
+    stagnation_count: stagnation.stagnation_count,
+    stagnation_health: stagnation.health,
+    stagnation_blocked: stagnationBlocked,
+    diff_error: diff.error,
+  };
+
+  // 机械客观信号（无量级魔数——diff 量级判断留 Claude 按项目规模定）
+  const hints = [];
+  if (diff.interface_files_changed.length > 0) hints.push('architecture_drift_signal');
+  if (diff.tech_stack_files_changed.length > 0) hints.push('tech_drift_signal');
+  if (stagnationBlocked) hints.push('implementation_stall_signal');
+  if (hints.length === 0 && diff.diff_lines_total === 0 && !diff.error) hints.push('no_drift_detected');
+
+  return {
+    ok: true,
+    command: 'monitor',
+    run: runDir,
+    since: diff.since,
+    baseline,
+    stagnation,
+    diff,
+    mechanical_signals,
+    mechanical_hints: hints,
+    needs_semantic_classification: true,  // 需求/技术漂移语义分类 + 量级分级留编排者 Claude
+  };
+}
+
+// ── CLI 参数解析 ──
+function parseArgs(argv) {
+  const opts = { run: null, since: null, root: null, stagnationK: null, help: false };
+  for (let i = 2; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--run') opts.run = argv[++i] || null;
+    else if (a === '--since') opts.since = argv[++i] || null;
+    else if (a === '--root') opts.root = argv[++i] || null;
+    else if (a === '--stagnation-k') opts.stagnationK = parseInt(argv[++i], 10);
+    else if (a === '--help' || a === '-h') opts.help = true;
+  }
+  return opts;
+}
+
+// ── CLI 入口 ──
+if (require.main === module) {
+  const opts = parseArgs(process.argv);
+  if (opts.help) {
+    process.stdout.write([
+      'monitor.js —— pipeline 漂移检测机械层（输出漂移材料给编排者 Claude 语义分类）',
+      '',
+      '用法：',
+      '  node monitor.js --run <dir> [--since <commit>] [--root <dir>] [--stagnation-k <N>]',
+      '',
+      '参数：',
+      '  --run          baseline 决策目录（.hcc/decisions/{run}/，含 50/60/70）',
+      '  --since        git diff baseline commit（默认 HEAD = working tree 未提交变更）',
+      '  --root         项目根（默认 cwd；stagnation 读取根 + git diff cwd）',
+      '  --stagnation-k 验证闸挂阻塞线（默认 3）',
+      '',
+      '输出：漂移材料 JSON（baseline + stagnation + diff + mechanical_signals + hints）',
+      '      needs_semantic_classification=true → 编排者 Claude 做需求/技术漂移语义分类 + 分级',
+      '',
+    ].join('\n'));
+    process.exit(0);
+  }
+
+  try {
+    const result = detectDrift({
+      runDir: opts.run,
+      root: opts.root,
+      since: opts.since,
+      stagnationK: opts.stagnationK,
+    });
+    process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+    process.exit(0);
+  } catch (e) {
+    process.stderr.write(`错误：${e.message}\n`);
+    process.exit(1);
+  }
+}
+
 module.exports = {
   truncate,
   resolveStateRootForRead,
   readBaseline,
   readStagnation,
+  gitDiffStat,
+  detectDrift,
+  isInterfaceFile,
+  isTechStackFile,
+  safeRef,
+  parseArgs,
   DEFAULT_MAX_CHARS,
   BASELINE_FILES,
 };
