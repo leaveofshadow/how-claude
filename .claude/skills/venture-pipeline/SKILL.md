@@ -178,7 +178,7 @@ dag.json            ← 数据驱动拓扑（三原语，换 DAG 不改引擎代
 
 ## cc-venture 行动协议（层3 强制，R4 流程护栏）
 
-> layer-3 cc-venture 业务 DAG（`dag.venture.json`，8 节点 N1→N2→N3─HG1─→N4─HG2─→N5→N6⇄N7→N8）的执行约定：用上面 layer-2 命令面板的 `venture-resume.js` / `advance-node.js` 跑业务主线。本节是 [v2-R4] fail-safe 流程护栏——强制 4 步，防 agent 跳 set-signal 导致主线卡死。
+> layer-3 cc-venture 业务 DAG（`dag.venture.json`，10 节点 N1→N2→N3→N3.5需求→N3.6架构设计─HG1─→N4─HG2─→N5→N6⇄N7→N8）的执行约定：用上面 layer-2 命令面板的 `venture-resume.js` / `advance-node.js` 跑业务主线。本节是 [v2-R4] fail-safe 流程护栏——强制 4 步，防 agent 跳 set-signal 导致主线卡死。
 
 ### 行动协议（强制，不准跳）
 
@@ -209,11 +209,11 @@ dag.json            ← 数据驱动拓扑（三原语，换 DAG 不改引擎代
    ```
    → 推进到下一节点，回到第 1 步读下一个节点的指令卡。
 
-⚠️ **漏第 3 步直接 advance → 普通段 signal 留 unknown → advance 触发 ask_hg 停等卡死（无自动恢复）**。普通段 edge（N1→N2 / N2→N3 / N5→N6 / N6→N7 / N7→N6 / N7→N8）signal 初值=unknown，advance-node.js 遇 unknown 走 HG 询问分支（line 325），主线推不动。解卡唯一方式：补跑 set-signal 改 green，再 advance。
+⚠️ **漏第 3 步直接 advance → 普通段 signal 留 unknown → advance 触发 ask_hg 停等卡死（无自动恢复）**。普通段 edge（N1→N2 / N2→N3 / N3→N3.5 / N3.5→N3.6 / N5→N6 / N6→N7 / N7→N6 / N7→N8）signal 初值=unknown，advance-node.js 遇 unknown 走 HG 询问分支（line 325），主线推不动。解卡唯一方式：补跑 set-signal 改 green，再 advance。
 
 ### HG 越闸（不准 set-signal，R3 死字段）
 
-HG edge（N3→N4 gate=HG1 / N4→N5 gate=HG2，`awaiting_human:true`）的 signal 是**死字段**——advance 命中 awaiting_human 先于 signal 评估（advance-node.js line 294），set-signal 改 HG edge → exit 1（拒改死字段）。agent 到 HG 节点自动停等（status:awaiting_human）→ 报告 boss → 等 boss 决策后调 resolve-hg 越闸，**不准自己跳**：
+HG edge（N3.6→N4 gate=HG1 / N4→N5 gate=HG2，`awaiting_human:true`）的 signal 是**死字段**——advance 命中 awaiting_human 先于 signal 评估（advance-node.js line 294），set-signal 改 HG edge → exit 1（拒改死字段）。agent 到 HG 节点自动停等（status:awaiting_human）→ 报告 boss → 等 boss 决策后调 resolve-hg 越闸，**不准自己跳**：
 
 ```bash
 node .claude/skills/venture-pipeline/scripts/resolve-hg.js resolve \
@@ -228,9 +228,11 @@ node .claude/skills/venture-pipeline/scripts/resolve-hg.js resolve \
 
 orchestrate 指令卡的「完成后你必须做」段必须**逐字列出当前节点的 set-signal + advance 命令**（含具体 `--edge from:to` / `--artifact 路径` / `--dag 路径`），让 agent 复制粘贴即可执行，不留「agent 自己想命令」的歧义空间。实现见 venture-resume.js cmdOrchestrate（M2，R2.1-验证2 测试覆盖逐字命令断言）。
 
-## cc-2pp 衔接（变更回溯 + 视角组 + 自动调，2026-06-29）
+## cc-2pp 衔接（N3.6 架构设计节点 + 变更回溯 + 视角组 + 自动调，2026-06-29）
 
-pipeline 在重大决策时自动调 cc-2pp（切面），大变更走视角组探索 → 调 cc-2pp 重做。
+cc-2pp 与 pipeline 两种衔接：
+1. **N3.6 架构设计节点**（2026-06-29 插）：N3.5 需求 PRD → **N3.6 架构设计（cc-2pp 激活，产 55-architecture.md：系统架构图/模块/接口契约/数据模型/部署/选型定稿）** → N4 原型。cc-2pp 作节点激活，强制产出架构设计文档（web2 教训：选型止步、跳架构设计致粗糙）。exit_condition 查六块关键词。
+2. **切面**（重大决策自动调）：大变更走视角组探索 → 调 cc-2pp 重做。
 
 ### 变更检测 + 分级（M2）
 pipeline 监控实施（cc-loop 验证闸挂 / 流转阻塞 / 用户标记）→ 变更分级：
