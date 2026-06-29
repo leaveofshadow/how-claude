@@ -265,6 +265,16 @@ node monitor.js --run <run-dir> [--since <commit>] [--root <dir>] [--stagnation-
 
 **机械边界**（关键）：monitor.js 只做客观机械检测——diff 量 + 文件分类（接口 `contract|interface|api|schema|dag|index` / 技术栈 `package.json|go.mod|dag.*.json`）+ stagnation≥K → 输出 `mechanical_hints`（`architecture_drift_signal` / `tech_drift_signal` / `implementation_stall_signal` / `no_drift_detected`）。**语义分类（需求/技术漂移 + 小/中/大量级分级）= `needs_semantic_classification: true`，留编排者 Claude**（不把语义塞脚本规则）。约束（C2 调整）：child_process **仅** execSync 调 `git diff`/`git ls-files`（只读）；禁 spawn skill/禁 vm/eval/禁写 state；跨 skill 只读 cc-runtime `checkpoint.stagnation_count`。
 
+**触发时机 + 分级路由**（编排者 Claude 调 monitor → 读 hints → 语义分类 → 路由）：
+- 调 monitor 的 3 时机：① 用户输入新需求/技术变更/架构重构意向 ② 验证闸挂（cc-loop signal=fail/stagnation）③ 大 diff 流转后
+- monitor hints → 分级映射（机械粗筛，语义确认后路由）：
+  - `no_drift_detected` → 继续 TDD 推进（无漂移）
+  - `tech_drift_signal`（技术栈文件变，量小）→ 中变更：改局部 plan（60/70），不回 Phase 0/2
+  - `architecture_drift_signal`（接口/契约文件变）→ 倾向大变更：视角组探索 + 调 cc-2pp 重做
+  - `implementation_stall_signal`（stagnation≥K 验证闸挂）→ 技术不 fit 隐式信号 → 调 cc-2pp 重做技术选型
+  - 需求漂移（用户输入 vs 70/50 语义对比）→ 语义判：小调需求 / 中改 plan / 大重做
+- ★ hints 是机械粗筛，最终分级由编排者 Claude 语义判断（对比 baseline + 项目规模），不机械套规则
+
 ### 视角组探索 + 调 cc-2pp（M3）
 大变更触发：
 ```

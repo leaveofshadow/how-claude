@@ -390,6 +390,10 @@ function cmdOrchestrate(opts) {
       lines.push(`  - ${e.from}→${e.to} (signal=${sig}, awaiting_human=${ah}${gatePart})  ← ${kind}`);
     }
   }
+  // 漂移检测提示（编排者按需调 monitor；一行简短指向 SKILL，避免每节点冗长——monitor 是编排者工具非执行步骤）
+  lines.push(`## 漂移检测（编排者按需，非每节点强制）`);
+  lines.push(`💡 用户变需求 / 验证闸挂（cc-loop fail/stagnation）/ 大 diff 流转后 → 调 \`node monitor.js --root .\` → 读 mechanical_hints → 语义分类 → 分级路由（见 SKILL「monitor 漂移检测·触发时机+分级路由」）`);
+  lines.push('');
   const card = lines.join('\n') + '\n';
 
   return {
