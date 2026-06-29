@@ -40,7 +40,7 @@
       "id": "N4",
       "type": "task",
       "skill": "placeholder",
-      "exit_condition": "artifact .hcc/dev/hcc-dev/N4_原型_plan.md 存在且含关键词 原型（hcc-dev 原型产出；C7 占位：skill=placeholder 不激活，HG1 出口最小闭环外，但落盘路径规范 .hcc/dev/hcc-dev/）"
+      "exit_condition": "artifact .hcc/dev/hcc-dev/N4_原型_plan.md 存在且含关键词 原型（hcc-dev 原型产出，基于 N3.6 架构设计 55-architecture.md 的模块/接口；C7 占位：skill=placeholder 不激活，hcc-dev 待实装；原型 plan 必须引 N3.6 架构设计，禁凭空——web2 教训；落盘路径规范 .hcc/dev/hcc-dev/）"
     },
     {
       "id": "N5",
