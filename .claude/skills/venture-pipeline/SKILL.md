@@ -269,6 +269,7 @@ node monitor.js --run <run-dir> [--since <commit>] [--root <dir>] [--stagnation-
 - 调 monitor 的 3 时机：① 用户输入新需求/技术变更/架构重构意向 ② 验证闸挂（cc-loop signal=fail/stagnation）③ 大 diff 流转后
 - monitor hints → 分级映射（机械粗筛，语义确认后路由）：
   - `no_drift_detected` → 继续 TDD 推进（无漂移）
+  - `generic_drift_signal`（有变更无机械特征）→ 编排者语义量级判断（小/中/大，看 diff_lines_total + 项目规模）
   - `tech_drift_signal`（技术栈文件变，量小）→ 中变更：改局部 plan（60/70），不回 Phase 0/2
   - `architecture_drift_signal`（接口/契约文件变）→ 倾向大变更：视角组探索 + 调 cc-2pp 重做
   - `implementation_stall_signal`（stagnation≥K 验证闸挂）→ 技术不 fit 隐式信号 → 调 cc-2pp 重做技术选型

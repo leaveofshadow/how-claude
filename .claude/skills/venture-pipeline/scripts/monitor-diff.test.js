@@ -60,6 +60,22 @@ test('isTechStackFile：package.json/go.mod/dag.*.json 等 → true', () => {
   assert.strictEqual(monitor.isTechStackFile('src/index.js'), false);
 });
 
+test('safeRef：HEAD~N / HEAD^ ref 语法合法（不误 fallback HEAD）', () => {
+  assert.strictEqual(monitor.safeRef('HEAD~5'), 'HEAD~5');
+  assert.strictEqual(monitor.safeRef('HEAD^'), 'HEAD^');
+  assert.strictEqual(monitor.safeRef('main~2'), 'main~2');
+  assert.strictEqual(monitor.safeRef('HEAD'), 'HEAD');
+  assert.strictEqual(monitor.safeRef('abc123def'), 'abc123def');
+});
+
+test('safeRef：shell 元字符注入仍拒（fallback HEAD）', () => {
+  assert.strictEqual(monitor.safeRef('; rm -rf /'), 'HEAD');
+  assert.strictEqual(monitor.safeRef('$(whoami)'), 'HEAD');
+  assert.strictEqual(monitor.safeRef('HEAD;echo'), 'HEAD');
+  assert.strictEqual(monitor.safeRef('`id`'), 'HEAD');
+  assert.strictEqual(monitor.safeRef(null), 'HEAD');
+});
+
 // ── gitDiffStat ──
 
 test('gitDiffStat：working tree 未提交变更（since=HEAD 默认）→ 检测 +/- 行 + 文件分类', () => {
@@ -175,6 +191,18 @@ test('detectDrift：无变更 + 无 stagnation → no_drift_detected', () => {
     gitCommit(repo, 'init');
     const out = monitor.detectDrift({ runDir: null, root: repo });
     assert.ok(out.mechanical_hints.includes('no_drift_detected'), `应含 no_drift，实际 ${out.mechanical_hints}`);
+  } finally { fs.rmSync(repo, { recursive: true, force: true }); }
+});
+
+test('detectDrift：有 diff 但无接口/技术栈文件 → generic_drift_signal（避免空 hints 歧义）', () => {
+  const repo = mkGitRepo();
+  try {
+    writeFile(repo, 'src/app.js', '1\n');
+    gitCommit(repo, 'init');
+    writeFile(repo, 'src/app.js', '1\n2\n3\n');  // 普通文件变更（非接口/技术栈）
+    const out = monitor.detectDrift({ runDir: null, root: repo });
+    assert.ok(out.mechanical_hints.includes('generic_drift_signal'), `应含 generic_drift，实际 ${out.mechanical_hints}`);
+    assert.strictEqual(out.mechanical_signals.diff_lines_total > 0, true);
   } finally { fs.rmSync(repo, { recursive: true, force: true }); }
 });
 

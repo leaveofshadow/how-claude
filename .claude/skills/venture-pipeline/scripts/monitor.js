@@ -134,8 +134,10 @@ function isTechStackFile(file) {
 }
 
 // git ref 安全校验（防 shell 注入——since 来自 CLI 参数）
+// 允许 git ref 语法：HEAD / HEAD~N / HEAD^ / branch~N / commit-hash / tag
+// 拒 shell 元字符（; | $ ` 空格等）防注入
 function safeRef(ref) {
-  if (!ref || !/^[A-Za-z0-9._\/-]+$/.test(ref)) return 'HEAD';
+  if (!ref || !/^[A-Za-z0-9._~^\/-]+$/.test(ref)) return 'HEAD';
   return ref;
 }
 
@@ -238,6 +240,7 @@ function detectDrift(opts) {
   if (diff.tech_stack_files_changed.length > 0) hints.push('tech_drift_signal');
   if (stagnationBlocked) hints.push('implementation_stall_signal');
   if (hints.length === 0 && diff.diff_lines_total === 0 && !diff.error) hints.push('no_drift_detected');
+  else if (hints.length === 0 && diff.diff_lines_total > 0) hints.push('generic_drift_signal');  // 有变更无机械特征→编排者语义量级判断（避免空 hints 歧义）
 
   return {
     ok: true,
