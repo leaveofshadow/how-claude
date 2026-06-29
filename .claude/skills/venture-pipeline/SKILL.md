@@ -238,6 +238,24 @@ pipeline 监控实施（cc-loop 验证闸挂 / 流转阻塞 / 用户标记）→
 - **中变更**（跨模块/技术栈不变）→ 改局部 plan（60/70），不回 Phase 0/2
 - **大变更**（技术不 fit / 架构假设错 / 核心需求变）→ 视角组探索 + 调 cc-2pp 重做
 
+### monitor 漂移检测（M2 实现设计，2026-06-29）
+
+**用户不显式声明变更**——monitor 主动漂移检测（baseline vs current 对比），不只被动等用户说。
+
+| 漂移类型 | baseline | current signal | 检测 |
+|---|---|---|---|
+| 需求漂移 | 70-requirements + 50-decision | 用户当前输入/新需求文档 | 语义对比（Claude 分类）|
+| 技术漂移 | 60-impl-plan 技术选型 | git diff 技术栈文件 | diff 对比 + Claude 判断 |
+| 架构漂移 | 60-impl-plan 架构设计 | git diff 接口/结构文件 | diff 量 + 接口变更（机械）|
+| 实施信号 | — | checkpoint.stagnation_count ≥ K | 机械（验证闸挂 = 技术不 fit 隐式信号）|
+
+**机械（monitor.js）+ 语义（Claude）分工**：
+- monitor.js 做可机械检测的（git diff --stat 量 + 接口文件变更 + stagnation_count + 读 baseline 50/60/70 摘要）
+- 编排者 Claude 做语义分类（读 monitor.js 输出的漂移材料 → 分类需求/技术/架构漂移 → 触发分级）
+- 不把语义塞进脚本规则（变更语义复杂，规则覆盖不全）
+
+**实现形态**（P1 轻量，事件触发非 daemon）：monitor.js 事件触发（用户输入/验证闸挂/advance-node 流转时调用），输出漂移材料给编排者 Claude 分类。**待实现**（下轮 TDD：monitor.js + test）。
+
 ### 视角组探索 + 调 cc-2pp（M3）
 大变更触发：
 ```
