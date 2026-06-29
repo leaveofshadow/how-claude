@@ -31,6 +31,12 @@
       "exit_condition": "artifact .hcc/product/venture-product-requirement/N3.5_需求规格_prd.md 存在且含工程六块关键词（§3 功能需求 / §5 验收）（背景介绍/产品概述/用户分析/需求说明/里程碑规划）；+ grill-me 落盘 artifact .hcc/product/venture-product-requirement/N3.5_grill_log.md 存在（追问数≥N 语义校验放 SKILL.md 自检清单，引擎层只 existsSync，主题4 分层）；venture-product-requirement 激活 grill-me 打磨 §3 清晰度/可验证性/边界（禁问市场/画像/竞品）；可证伪：fs.existsSync×2 + 关键词 includes（§3 功能需求/§5 验收/N3.5_grill_log）⚠️ 统一规范（hcc 目录统一阶段1，2026-06-25）：所有节点产物路径统一 .hcc/{部门}/{skill}/{phase}_{feature}_{type}.md（charter L126）。N3.5/N7 先行合规，阶段1 补齐 N1/N2/N3。extractArtifact 已加双路径（.hcc/ 优先 + .venture/artifacts/ 兼容）。"
     },
     {
+      "id": "N3.6",
+      "type": "task",
+      "skill": "cc-2pp",
+      "exit_condition": "artifact .hcc/dev/hcc-dev/N3.6_架构设计_arch.md 存在且含架构设计六块关键词（系统架构图 / 模块划分 / 接口契约 / 数据模型 / 部署架构 / 选型定稿）（cc-2pp 两阶段设计产出架构设计文档，补 N3.5 需求→N4 原型间缺失的架构设计层；六块：系统架构+模块边界+接口契约+数据模型+部署拓扑+技术选型版本收敛；2026-06-29 web2 教训：cc-2pp 选型止步无架构设计致原型粗糙，插此节点强制；可证伪：fs.existsSync + 六块关键词 includes）"
+    },
+    {
       "id": "N4",
       "type": "task",
       "skill": "placeholder",
@@ -88,6 +94,14 @@
     },
     {
       "from": "N3.5",
+      "to": "N3.6",
+      "condition": {
+        "signal": "unknown",
+        "awaiting_human": false
+      }
+    },
+    {
+      "from": "N3.6",
       "to": "N4",
       "condition": {
         "signal": "unknown",

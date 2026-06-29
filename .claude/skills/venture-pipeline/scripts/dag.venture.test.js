@@ -28,9 +28,9 @@ const dag = JSON.parse(fs.readFileSync(DAG_PATH, 'utf8'));
 const nodeById = Object.fromEntries(dag.nodes.map((n) => [n.id, n]));
 const edge = (from, to) => dag.edges.find((e) => e.from === from && e.to === to);
 
-// ── 拓扑：9 节点（M1 插 N3.5）──
-test('拓扑：9 节点（M1 插 N3.5 需求规格）', () => {
-  assert.strictEqual(dag.nodes.length, 9, 'nodes.length === 9（M1 后）');
+// ── 拓扑：10 节点（M1 插 N3.5 需求规格 + 2026-06-29 插 N3.6 架构设计）──
+test('拓扑：10 节点（M1 N3.5 + 2026-06-29 N3.6 架构设计）', () => {
+  assert.strictEqual(dag.nodes.length, 10, 'nodes.length === 10（N3.6 架构设计插入后）');
 });
 
 // ── 主线 N1/N2/N3/N3.5 真 skill 名（最小可演示闭环，M1 加 N3.5 需求规格）──
@@ -39,6 +39,8 @@ test('主线 N1/N2/N3/N3.5 真 skill 名', () => {
   assert.strictEqual(nodeById.N2.skill, 'venture-sales-judge');
   assert.strictEqual(nodeById.N3.skill, 'hcc-decision');
   assert.strictEqual(nodeById['N3.5'].skill, 'hcc-product-requirement', 'N3.5 需求规格 skill（M1 插入）');
+  // 2026-06-29 插 N3.6 架构设计（cc-2pp 产架构设计文档，补需求→原型间缺失层）
+  assert.strictEqual(nodeById['N3.6'].skill, 'cc-2pp', 'N3.6 架构设计 skill=cc-2pp');
 });
 
 // ── 占位节点 N4 skill=placeholder（C7，HG1 出口开发部实施）+ N5/N6/N7/N8 装配 ──
@@ -66,6 +68,10 @@ test('exit_condition 含可证伪关键词', () => {
   assert.ok(nodeById['N3.5'].exit_condition.includes('§3 功能需求'), 'N3.5 含 §3 功能需求（工程六块，charter 块1 复审）');
   assert.ok(nodeById['N3.5'].exit_condition.includes('§5 验收'), 'N3.5 含 §5 验收（工程六块，charter 块1 复审）');
   assert.ok(nodeById['N3.5'].exit_condition.includes('N3.5_grill_log'), 'N3.5 含 N3.5_grill_log（grill-me 落盘契约，主题2）');
+  // N3.6 架构设计六块关键词（2026-06-29 插入，cc-2pp 产架构设计文档）
+  assert.ok(nodeById['N3.6'].exit_condition.includes('系统架构图'), 'N3.6 含 系统架构图');
+  assert.ok(nodeById['N3.6'].exit_condition.includes('接口契约'), 'N3.6 含 接口契约');
+  assert.ok(nodeById['N3.6'].exit_condition.includes('选型定稿'), 'N3.6 含 选型定稿（版本收敛，web2 教训）');
 });
 
 // ── activate_external schema 断言（主题5：防 boss 手改静默失效）──
@@ -91,15 +97,17 @@ test('普通段 edge signal=unknown（R3：逼 agent 走 set-signal 改 green）
   }
   // M1：N3→N3.5 是普通段（与 N1→N2 同构，set-signal 闭环推进到 N3.5）
   assert.strictEqual(edge('N3', 'N3.5').condition.awaiting_human, false, 'N3→N3.5 普通段 awaiting_human=false');
+  // 2026-06-29：N3.5→N3.6 是普通段（需求→架构设计，set-signal 闭环推进到 N3.6）
+  assert.strictEqual(edge('N3.5', 'N3.6').condition.awaiting_human, false, 'N3.5→N3.6 普通段（架构设计节点）');
 });
 
-// ── M1：HG edge N3.5→N4 awaiting_human+gate=HG1（M1 前是 N3→N4，拆 N3.5 后 HG1 移到 N3.5→N4）──
-test('HG edge N3.5→N4 awaiting_human+gate=HG1（M1 拓扑变更）', () => {
-  const c = edge('N3.5', 'N4').condition;
-  assert.strictEqual(c.awaiting_human, true, 'N3.5→N4 HG 段 awaiting_human');
-  assert.strictEqual(c.gate, 'HG1', 'N3.5→N4 gate=HG1');
-  // M1：N3→N4 已删除（拆为 N3→N3.5 + N3.5→N4），断言旧 edge 不存在（防回滚遗漏）
-  assert.strictEqual(edge('N3', 'N4'), undefined, 'N3→N4 edge 已删除（M1 拆分）');
+// ── HG edge N3.6→N4 awaiting_human+gate=HG1（2026-06-29 插 N3.6 后，HG1 从 N3.5→N4 移到 N3.6→N4）──
+test('HG edge N3.6→N4 awaiting_human+gate=HG1（N3.6 架构设计插入后）', () => {
+  const c = edge('N3.6', 'N4').condition;
+  assert.strictEqual(c.awaiting_human, true, 'N3.6→N4 HG 段 awaiting_human');
+  assert.strictEqual(c.gate, 'HG1', 'N3.6→N4 gate=HG1');
+  // 2026-06-29：N3.5→N4 已删除（插 N3.6 后拆为 N3.5→N3.6 普通段 + N3.6→N4 HG1）
+  assert.strictEqual(edge('N3.5', 'N4'), undefined, 'N3.5→N4 edge 已删除（N3.6 插入后 HG1 移到 N3.6→N4）');
 });
 
 // ── R3：HG edge N4→N5 awaiting_human+gate=HG2 ──
