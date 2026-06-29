@@ -228,6 +228,36 @@ node .claude/skills/venture-pipeline/scripts/resolve-hg.js resolve \
 
 orchestrate 指令卡的「完成后你必须做」段必须**逐字列出当前节点的 set-signal + advance 命令**（含具体 `--edge from:to` / `--artifact 路径` / `--dag 路径`），让 agent 复制粘贴即可执行，不留「agent 自己想命令」的歧义空间。实现见 venture-resume.js cmdOrchestrate（M2，R2.1-验证2 测试覆盖逐字命令断言）。
 
+## cc-2pp 衔接（变更回溯 + 视角组 + 自动调，2026-06-29）
+
+pipeline 在重大决策时自动调 cc-2pp（切面），大变更走视角组探索 → 调 cc-2pp 重做。
+
+### 变更检测 + 分级（M2）
+pipeline 监控实施（cc-loop 验证闸挂 / 流转阻塞 / 用户标记）→ 变更分级：
+- **小变更**（局部/单点，不碰架构）→ cc-loop 内 TDD，不回溯
+- **中变更**（跨模块/技术栈不变）→ 改局部 plan（60/70），不回 Phase 0/2
+- **大变更**（技术不 fit / 架构假设错 / 核心需求变）→ 视角组探索 + 调 cc-2pp 重做
+
+### 视角组探索 + 调 cc-2pp（M3）
+大变更触发：
+```
+视角组 Agent（复用 cc-2pp _roles/perspective-*.md 视角库，DRY 不另建）
+  → parallel 探索变更影响（架构/产品/UIUX/测试/运维各视角）
+  → pipeline 编排者聚合
+  → 调 cc-2pp Phase 0（探索产出作 00-explore 输入）
+  → cc-2pp 跑 Phase 2/4 → 新 50/60/70 → pipeline 消费（exit_condition）
+```
+★ 视角组仅大变更 spawn（按需）；视角库 cc-2pp owns，pipeline 复用。
+
+### 重大决策自动调 cc-2pp（M4）
+pipeline 节点遇重大决策（score_2pp≥5 或节点显式标记 `auto_2pp: true`）→ 自动触发 cc-2pp（双入口之一）。cc-2pp 产新 plan → pipeline 消费（exit_condition）→ 流转。
+
+### 衔接契约（三层正交）
+- **pipeline** = 全流程编排 + 变更检测/分级 + 视角组聚合 + 调 cc-2pp
+- **cc-2pp** = 计划执行器（领域无关切面），被 pipeline 调 / 被用户手动调
+- **cc-loop** = 执行原语（跑通节点/里程碑）
+- **视角库** = cc-2pp owns（`_roles/perspective-*.md`），pipeline 复用（DRY）
+
 ## 当前状态
 
 - **M0** dag.json schema + load-graph.js（解析 + 字位报未实现 + graph_hash）✅
