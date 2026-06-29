@@ -59,9 +59,11 @@ function resolveStateRootForRead(rootArg) {
   return path.resolve('.venture', 'state');
 }
 
-// dag.json 路径：缺省 fallback <cwd>/.claude/skills/venture-pipeline/dag.json
+// dag.json 路径（M1 通用化）：--dag 参数 > 通用 .claude/pipeline/dag.json > venture-pipeline 实例（兼容旧）
 function resolveDagPath(dagArg) {
   if (dagArg) return path.resolve(dagArg);
+  const genericDag = path.resolve('.claude', 'pipeline', 'dag.json');
+  if (fs.existsSync(genericDag)) return genericDag;
   return path.resolve('.claude', 'skills', 'venture-pipeline', 'dag.json');
 }
 
@@ -183,10 +185,11 @@ function cmdRead(opts) {
 function cmdSetHg(opts) {
   const gate = opts.gate;
   if (!gate) {
-    throw new Error('set-hg 必须提供 --gate HG1|HG2');
+    throw new Error('set-hg 必须提供 --gate <gate-name>（如 HG1/HG2/任意业务闸名）');
   }
-  if (gate !== 'HG1' && gate !== 'HG2') {
-    throw new Error(`--gate 仅接受 HG1|HG2（实际 ${gate}）`);
+  // M1 通用化：gate 名验证格式（字母数字/下划线/连字符），不限 HG1|HG2——支持任意业务闸
+  if (!/^[A-Za-z0-9_-]+$/.test(gate)) {
+    throw new Error(`--gate 格式无效（实际 ${gate}）：gate 名只允许字母数字/下划线/连字符`);
   }
 
   const stateRoot = resolveStateRootForRead(opts.root);
