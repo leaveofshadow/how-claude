@@ -109,6 +109,20 @@ REPORT  → 输出什么？（Slack通知 / 总结报告 + 信号触发蒸馏 ep
 2. **无进展检测** — 连续 K 次相同错误/空diff → 停止
 3. **预算上限** — token 或 $ 上限，用完即停
 
+## POC 小循环（cc-2pp Phase 3.5 联动，量化验证）
+
+cc-2pp 裁决技术后、实施前，跑 Phase 3.5 POC 作为小循环（跑→量化验证→不过回退）：
+
+```
+POC 小循环:  跑最小验证（关键假设 + ②数理推导的下界边缘 case）
+  → 对照③指标体系（性能 p99/QPS + 正确性 + 可靠性 + 成本 + 集成）
+  → 实测 vs ②理论阈值 → PASS 进实施 / FAIL 回 cc-2pp Phase 2 重选
+```
+
+**联动**：cc-2pp Phase 3.5 定义指标 + 阈值（来自②数理推导），cc-loop 提供循环执行（跑→验证→回退）。POC 是「闭环反馈」（§闭环反馈）的具体应用——验证闸是③量化对照表 PASS/FAIL，不是定性"跑通了"。
+
+判据（可证伪）：POC 输出实测 vs 理论对照表（数值），PASS/FAIL；非「跑通了」。
+
 ## 经验蒸馏（信号触发 → episodes.json，cc-runtime 联动）
 
 循环每轮按**信号**触发经验沉淀（Reflexion 式，非无差别 append），写入 `.hcc/state/episodes.json`（三段式 schema v2，cc-runtime `init-episodes.js` 初始化；设计见 `.hcc/decisions/2026-06-28-episodes-distill/50-decision.md`）：
