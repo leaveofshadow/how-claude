@@ -25,20 +25,25 @@ Claude 作实施者有系统性缺陷：**偷懒走捷径 / 经常忘记约束 /
 | `cc-scanner` | 技能知识库（多源扫描 → 推荐 → 技能作为循环资产）|
 | `cc-memory` | 记忆系统审查（5 系统 × 3 级别 + 循环记忆写回）|
 
-**编排 + 契约**：
+**编排 + 契约 + 管理**：
 - `venture-pipeline` — 产品全流程 DAG 编排（销售 → 决策 → 需求 PRD → 架构设计 → 原型 → 验证 → 产品化 → UIUX → 规模化）+ `monitor` 漂移检测（隐式 baseline 对比 + 机械/语义分工）
+- `hcc-cli` — 套件自管理（install / update / uninstall / doctor / help，全局 clone + 逐技能软链）
 - `contracts/` — org↔claude / human↔claude / human↔org 三类契约单一来源（语义锚引用，下游不重复）
 
 ## 快速开始
 
-```bash
-git clone https://github.com/leaveofshadow/how-claude.git
-cd how-claude
-# .claude/skills/ 下是技能源（claude-coach + cc-* + venture-pipeline）
-# 复制/软链到你项目的 .claude/skills/ 即可被 Claude Code 加载
+在 Claude Code 里说「**hcc install**」（或 `/hcc-cli install`）一键装全套件到当前项目——hcc-cli 自动全局 clone `~/.claude/how-claude/` + 逐技能软链 + 写 manifest：
+
+```
+> hcc install                          # 装全套件（claude-coach + cc-* + venture-pipeline + contracts）
+> hcc install --minimal                # 只装 claude-coach + cc-loop + cc-2pp
+> hcc install --skills=cc-2pp,cc-loop  # 自选
+> hcc update / hcc doctor / hcc uninstall --purge   # 后续自管理
 ```
 
-在 Claude Code 里触发路由器（自然语言或斜杠命令）：
+> 无 Claude Code？手动 `git clone https://github.com/leaveofshadow/how-claude.git` + 复制/软链 `.claude/skills/` 到你的项目。
+
+装好后在 Claude Code 里触发：
 
 ```
 > 我有个长期任务老跑偏，怎么治        → claude-coach 诊断 → 路由 cc-loop + cc-goal
