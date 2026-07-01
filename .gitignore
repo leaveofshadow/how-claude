@@ -12,6 +12,7 @@
 .hcc/decisions/
 .hcc/artifacts/
 .hcc/archived/
+.hcc/issues/  # OMC 自动 issue 产物（非业务，不入库）
 .claude/compact-snapshots/
 .venv/
 .venv-perf/
