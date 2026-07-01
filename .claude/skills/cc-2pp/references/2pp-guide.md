@@ -194,6 +194,58 @@ web 搜索预算（护栏）: 最多 15 轮
 
 ---
 
+## Workflow 增强实现（模式C 双轨，opt-in）
+
+模式C 默认手动 spawn Agent；用户说 `ultracode`/`fan out subagents`/`用 workflow`/`动态工作流` 时升级为 Workflow 脚本（parallel fan-out）。**脚本只 fan-out，评分/综合留编排者主循环**（解决攻击依赖评分选 Top2——脚本自治跑完，中途不能插编排者评分，故拆两次调用）。
+
+**草稿1 — 起草 fan-out**（编排者调 `Workflow({script, args:{run, constraint}})`，run=决策目录名，constraint=用户约束+探索摘要）：
+
+```js
+export const meta = {
+  name: 'cc-2pp-mode-c-draft',
+  description: 'cc-2pp 模式C 起草 fan-out（3 派系并行写方案）',
+  phases: [{ title: '起草' }],
+}
+const stances = [
+  { key: 'alpha', stance: '保守派' },
+  { key: 'beta',  stance: '平衡派' },
+  { key: 'gamma', stance: '创新派' },
+]
+await parallel(stances.map(s => () => agent(
+  `你是判官小组${s.stance}。基于探索与约束起草方案，完整写到 .hcc/decisions/${args.run}/10-plan-${s.key}.md（含轻量章节清单+实施者度量约束）。约束: ${args.constraint}`,
+  { label: `drafter:${s.key}`, phase: '起草' }   // 不带 schema，写文件；按需 agentType:'general-purpose' 保 Write
+)))
+return { run: args.run }
+// ↓ 编排者主循环：读 10-plan-{α,β,γ} → 评分 → 写独立 30-score.md → 选 Top2
+```
+
+**草稿2 — 攻击 fan-out**（编排者调 `Workflow({script, args:{run, top2}})`，top2=评分选出的 Top2 方案全文）：
+
+```js
+export const meta = {
+  name: 'cc-2pp-mode-c-attack',
+  description: 'cc-2pp 模式C 攻击 fan-out（3 攻击者并行，基于 Top2）',
+  phases: [{ title: '攻击' }],
+}
+const attackers = [
+  { key: 'A', slice: '只看 Top2 方案，不看探索（外部视角）' },
+  { key: 'B', slice: '只看探索，不看方案（前提攻击）' },
+  { key: 'C', slice: '看全部（完整上下文；必含三项好估+可编排性向量）' },
+]
+await parallel(attackers.map(a => () => agent(
+  `你是攻击者${a.key}，任务是推翻。上下文切片: ${a.slice}。对 Top2 找≥3 缺陷(严重度/证据/影响/修复)，写到 .hcc/decisions/${args.run}/20-attack-${a.key}.md。Top2: ${args.top2}`,
+  { label: `attacker:${a.key}`, phase: '攻击' }
+)))
+return { run: args.run }
+// ↓ 编排者主循环：读 20-attack-{A,B,C} → 综合 → 写 40-synthesis.md（引用 30-score）
+```
+
+**守则**：脚本只 fan-out（parallel）；agent 不带 schema 写文件；评分/综合留主循环编排者；drafter/attacker 用有 Write 权限的 agent 类型；30-score 独立、40-synthesis 引用 30-score。
+
+> 编排者用法：`Workflow({ script: <上述草稿>, args: {...} })` → 等完成通知 → 读文件做评分/综合。脚本亦可 `scriptPath` 持久化复用、`resumeFromRunId` 续跑。
+
+---
+
 ## 结构化输出（轻量框架）
 
 **不用刚性 JSON schema**——会把 agent 束缚成填表员，扼杀独立思考（违背一等公民原则）。
