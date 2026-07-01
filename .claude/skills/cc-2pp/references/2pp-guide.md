@@ -100,7 +100,7 @@ web 搜索预算（护栏）: 最多 15 轮
 └── {YYYY-MM-DD}-{slug}/                  ← 一次运行一个目录
     ├── 00-explore.md                     ← Phase 0 探索
     ├── 10-plan-main.md                   ← Phase 2 模式A 主力方案
-    ├── 10-plan-{alpha,beta,gamma}.md     ← Phase 2 模式B agent 各写方案
+    ├── 10-plan-{alpha,beta,gamma}.md     ← Phase 2 模式B/C 起草阶段 agent 各写方案（C 为默认）
     ├── 20-attack-{A,B,C}.md              ← Phase 2 agent 各写攻击
     ├── 30-score.md                       ← 编排者综合评分
     ├── 40-synthesis.md                   ← 编排者全文综合判断
@@ -186,8 +186,10 @@ web 搜索预算（护栏）: 最多 15 轮
 | 快速验证（5 min） | 1 opus 攻击者 + 不同上下文 |
 | 标准验证（15 min） | 2 攻击者: opus(外部视角 A) + opus(前提攻击 B) |
 | 深度验证（30 min） | 3 攻击者: opus(外部 A) + opus(前提 B) + opus(完整+视角库 C) |
-| 最高级别 | 模式 C 混合: 判官小组 + 深度验证 + Phase 4 实施计划 |
+| ★默认（2pp mode） | 模式 C: 判官小组(3方案+评分) + 深度验证(3攻击者) + Phase 4 实施计划 |
+| 显式逃生口 | 模式 B 纯评分(score-only): 判官小组(3方案+评分)，无对抗 |
 
+> 2026-07-01 修复：模式 C 从"最高级别可选"提为"2pp 默认"（兑现 Adversarial Verify 承诺）；模式 B 降为显式逃生口。
 （组合建议表亦见 `_roles/attacker.md` 索引，单一来源原则）
 
 ---
@@ -634,7 +636,7 @@ Step 4: 通知
 | 跳过 Explore 直接 Plan | 没有完备理解（缺 0a 内部/0b 外部）就出方案 | Phase 0 必做，不可跳过 |
 | 攻击者和防御者用同模型+同上下文 | 群体思维，对抗失效 | 至少一个维度差异化（上下文或视角） |
 | 一次用全部 6 个视角 | 信息过载，维度过多 | 根据场景选 2-3 个 |
-| 不问用户直接选模式 | 可能选错模式 | AskUserQuestion 确认 |
+| 不问用户直接选模式 | 可能选错模式 | resolveMode 按触发词/配置定 pattern（默认 C）；仅无配置且中性触发才 AskUserQuestion |
 | 攻击结果不分类 | 混淆有效/无效攻击 | 每个攻击明确标记有效/无效 |
 | 不持久化 Plan | 下次会话无法回顾 | 必须保存到文件 |
 | Plan 只写最终方案 | 丢失决策过程 | 包含被否决方案和否决原因 |
