@@ -18,7 +18,7 @@ Claude 作实施者有系统性缺陷：**偷懒走捷径 / 经常忘记约束 /
 |---|---|
 | `cc-loop` | **Loop Engineering 核心课**（五阶段演进 + 循环合同 + 护栏 + 闭环反馈 + 锚文件）|
 | `cc-goal` | 终态条件设计（五层模型 + supergoal 自评 + 可证伪预检）|
-| `cc-2pp` | **两阶段设计决策**（探索 → 判官小组多方案 → 对抗验证 → 裁决 + 实施计划）|
+| `cc-2pp` | **两阶段设计决策**（默认模式C：探索 → 判官小组多方案 → 对抗验证 → 裁决 + 实施计划；方向明确走 plan mode 单方案；权限四档 `permission_scope` 可配）|
 | `cc-orchestration` | 编排决策（subagent / workflow / team 决策树 + 编排循环）|
 | `cc-config` | 配置系统 + 锚文件体系（VISION / CLAUDE / AGENTS / PROMPT）|
 | `cc-context` | 上下文健康（健康检查 + 持久化策略 + 循环上下文管理）|
@@ -42,7 +42,8 @@ cd how-claude
 
 ```
 > 我有个长期任务老跑偏，怎么治        → claude-coach 诊断 → 路由 cc-loop + cc-goal
-> 帮我用判官小组做个架构决策          → cc-2pp
+> 帮我用判官小组做个架构决策          → cc-2pp（默认模式C：多方案 + 对抗）
+> 快速 plan 一下这个接口方案          → cc-2pp plan mode（单方案轻量）
 > 设计一个产品从 0 到 1 的流程        → venture-pipeline
 ```
 
