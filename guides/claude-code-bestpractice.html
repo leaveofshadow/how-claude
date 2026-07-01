@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 最佳实践指南</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+
+:root {
+  --primary: #d97706; --bg: #fffaf3; --card: #ffffff; --border: #fde68a;
+  --text: #292524; --muted: #78716c; --code-bg: #f5f5f4;
+  --tip: #ecfdf5; --tip-border: #10b981; --warn: #fef3c7; --warn-border: #f59e0b;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.75;
+  max-width: 880px; margin: 0 auto; padding: 32px 24px 80px;
+}
+h1 { font-size: 1.9em; border-bottom: 3px solid var(--primary); padding-bottom: 12px; margin-top: 56px; }
+h2 { color: var(--primary); margin-top: 48px; padding-left: 12px; border-left: 5px solid var(--primary); }
+h3 { margin-top: 32px; color: #44403c; }
+h4 { margin-top: 24px; color: #57534e; }
+p { margin: 14px 0; }
+a { color: var(--primary); text-decoration: none; border-bottom: 1px dotted; }
+a:hover { background: var(--border); }
+code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: "SF Mono", Consolas, monospace; font-size: 0.9em; color: #b91c1c; }
+pre { background: #1c1917; color: #fafaf9; padding: 18px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; color: inherit; padding: 0; }
+blockquote { background: var(--tip); border-left: 4px solid var(--tip-border); margin: 20px 0; padding: 14px 18px; border-radius: 0 6px 6px 0; }
+blockquote p { margin: 6px 0; }
+blockquote.core-advice { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left-color: var(--warn-border); font-size: 1.05em; }
+blockquote.core-advice::before { content: "💡 核心建议"; display: block; font-weight: 700; color: #92400e; margin-bottom: 6px; font-size: 0.85em; letter-spacing: 1px; }
+table { border-collapse: collapse; width: 100%; margin: 20px 0; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+th { background: var(--primary); color: white; }
+tr:nth-child(even) td { background: #fffbeb; }
+ul, ol { padding-left: 24px; margin: 14px 0; }
+li { margin: 6px 0; }
+hr { border: none; border-top: 2px solid var(--border); margin: 40px 0; }
+.hero { background: linear-gradient(135deg, #d97706, #b45309); color: white; padding: 36px 32px; border-radius: 12px; margin-bottom: 28px; }
+.hero h1 { border: none; color: white; margin: 0 0 10px; padding: 0; font-size: 1.7em; }
+.hero .subtitle { opacity: 0.92; font-size: 1.05em; }
+.hero .meta { margin-top: 14px; font-size: 0.88em; opacity: 0.85; }
+strong { color: #44403c; }
+
+</style>
+</head>
+<body>
+
+<div class="content">
+<h1>Claude Code 最佳实践指南</h1>
+<blockquote><strong>版本基线</strong>：Claude Code v2.1.x 系列（截至 2026-07，最新 v2.1.196，滚动发布几乎每日更新）— <a href="https://github.com/anthropics/claude-code/releases">GitHub Releases</a> · <a href="https://code.claude.com/docs/en/changelog">官方 changelog</a>
+<strong>文档类型</strong>：领域指南（domain-guide）→ 橙皮书风格 + 教程模式
+<strong>深度层</strong>：D3 原理 ✅ · D4 演变 ✅ · D5 心智模型 ✅ · D6 争议 ⭕(开) · D7 方向 ✅
+<strong>量化锚点</strong>：anthropics/claude-code GitHub star 约 80K-100K（2026 年中，<a href="https://github.com/anthropics/claude-code">实时页</a>）；公开 GitHub commit 中 Claude Code 约占 4%（SemiAnalysis 分析，预测 2026 年底日 commit 占比 20%+）
+<strong>置信度图例</strong>：★★★ 官方文档 + 社区共识 / ★★ 主流但未官方或单一源 / ★ 经验、小众或未量化</blockquote>
+<hr/>
+<h2>一句话核心</h2>
+<blockquote><strong>你不是在写代码，你是在指挥一个会写代码的 agent。用好 Claude Code 的关键是换脑子——从"自己动手"变成"给指令、审方案、设计循环"。</strong></blockquote>
+<p>这句话决定你用它顺不顺手。把它当"更聪明的代码补全"，你会逐行盯着它改，累且慢；把它当"一个能干活但需要你给方向、设护栏、验收结果的同事"，你才会把精力花在对的地方：<strong>描述清楚要什么、审查它给的方案、设计让它稳定的循环</strong>。</p>
+<hr/>
+<h1>第一部分：心智转变</h1>
+<h2>§01 最大的坎：你得换脑子</h2>
+<h3>痛点：用得累、产出差，因为你还在"自己动手"</h3>
+<p>大多数人装上 Claude Code，第一反应是把它当更聪明的 Copilot——逐行盯着它改、每一步都插手、生怕它写错。结果：累、慢、产出还不如自己写。问题不在工具，在你还在用"自己动手"的心智用它。</p>
+<p>用 Claude Code，最大的转变是<strong>角色的转换</strong>：</p>
+<pre><code>传统开发：你是写代码的人        → Claude Code 时代：你是指挥、审查、设计的人
+你敲键盘                     → 你描述要什么
+你决定怎么实现               → 你审它给的方案
+你一行行写                  → 你看它干、给反馈
+你记着所有上下文             → 你把上下文写进文件让它读
+</code></pre>
+<p>这不是"偷懒"，是<strong>分工</strong>。你的时间从"敲代码"转移到"想清楚要什么 + 审质量 + 设计流程"——这些是更高杠杆的事。敲代码的活，agent 干得比你快。</p>
+<h3>为什么这个转变最反直觉</h3>
+<p>因为过去 20 年，"会写代码"就是你的核心价值。现在 agent 把"写"这部分承包了，你会本能地不放心、想插手。但每多插一次手，你就把 agent 拉回"补全工具"的位置，浪费了它能自主跑完一个任务的能力。</p>
+<pre><code>推荐                              不推荐
+描述清楚终态 + 给它空间自主跑      逐行盯着、每步打断指挥
+它跑偏了再纠正方向                生怕它错、提前 micromanage
+把约束写进 CLAUDE.md 让它一直守     每次口头重复&quot;记得用 pnpm&quot;
+验收产出（跑测试/看 diff）         默认它写的对
+</code></pre>
+<blockquote><strong>核心建议（D5 心智模型）</strong>：把 Claude Code 当一个<strong>能干活但记忆短、需要明确指令、偶尔偷懒走捷径的同事</strong>。你的四个新职责：① 把要什么讲清楚 ② 把约束写进它能一直读到的文件 ③ 审它给的方案和产出 ④ 设计让它稳定重复的流程。这个心智模型换成目录标题你不会改预期——但换成"我现在的角色是什么"，你每次打开它的动作都变了。这就是心智模型，不是目录。</blockquote>
+<hr/>
+<h2>§02 Claude Code 到底是什么（D3 原理层）</h2>
+<h3>它不是聊天框，是 agent harness</h3>
+<p>很多人把它理解成"终端里的 ChatGPT"。这个理解会让你错过它的核心。Claude Code 不是一个聊天界面套了个终端壳——它是一个 <strong>agent harness（智能体运行框架）</strong>。区别在哪：</p>
+<p>聊天模型（ChatGPT 网页版）= 你问它答，它<strong>说</strong>给你听，你手动去改代码。 Claude Code = 它能<strong>自己读文件、改文件、跑命令、看结果、再改</strong>——一个自主的行动完整流程。</p>
+<p>它由三层组成：</p>
+<pre><code>模型层（Claude：Opus/Sonnet/Haiku）   ← 大脑，决定做什么
+   ↓
+harness 层（工具 + 权限 + 上下文管理）  ← 手脚和护栏，模型用它干活
+   ↓
+你的指令（prompt + CLAUDE.md + 配置）  ← 你给方向和约束
+</code></pre>
+<ul><li><strong>模型层</strong>决定"接下来做什么"——读哪个文件、跑什么命令、怎么改。</li><li><strong>harness 层</strong>是手和脚：一组工具（读/写/搜索/bash/subagent…）、权限闸（问你能不能干）、上下文管理（记住什么、忘掉什么）。模型用这些工具去干活。</li><li><strong>你的指令</strong>是方向盘和刹车：你通过 prompt、CLAUDE.md、配置告诉它去哪、不能碰什么。</li></ul>
+<p>知道这个分层，你就会理解为什么"换个更强的模型"不总是解决问题——如果约束没给清楚（指令层）或上下文爆了（harness 层），再强的模型也会跑偏。<strong>大多数"它不听话"的问题，根因在指令层和 harness 层，不在模型层。</strong></p>
+<blockquote class="core-advice">：理解三层分工后，遇到"它不听话"先定位是哪层：模型能力不够（换 Opus/给更多思考）→ 模型层；上下文太长/工具用错（/clear、改 prompt）→ harness 层；约束没写清楚/它不知道你的规矩（写进 CLAUDE.md）→ 指令层。三层定位比"换更强模型"有效得多。</blockquote>
+<hr/>
+<h2>§03 演变：从 CLI 工具到 agent harness（D4 演变层）</h2>
+<p>理解这个演变，你才知道为什么 2026 年的 Claude Code 长这样、哪些功能是新增的、哪些老教程已经过时。</p>
+<p><strong>第一步：CLI 助手（2024）</strong>。Claude Code 刚出来时，基本是"终端里问 Claude，它能读你项目"。能干的有限——主要问答 + 简单文件操作。</p>
+<p><strong>第二步：agent harness（2025）</strong>。它进化成能自主跑多步任务的 agent：读代码 → 分析 → 改 → 跑测试 → 看结果 → 再改。这一年加了 subagent、plan mode、hooks、自定义命令——从"问答工具"变成"能干活的框架"。</p>
+<p><strong>第三步：自治化（2026）</strong>。现在是<strong>让 agent 自己跑</strong>的阶段：后台 agent（被重启能断点续跑）、定时任务（cron/`/loop`）、自动模式（auto mode）安全收紧、组织级模型管理。方向很清楚——<strong>从"你盯着它干"到"你设好目标和护栏，它自己跑，你来验收"</strong>。</p>
+<p>最值得盯的 2026 变化（见 §26 详解）：Opus 4.7 GA + fast mode 弃用（2026-07-24 移除）、auto mode 拦破坏性 git/terraform 命令、`/rewind` 能恢复 `/clear` 之前的会话、后台 agent 断点续跑、组织级模型默认/限制。</p>
+<blockquote class="core-advice">：Claude Code 几乎每天滚动更新（v2.1.x），<strong>别背具体版本号，也别全信 2025 年的老教程</strong>。每月看一次 <a href="https://code.claude.com/docs/en/changelog">官方 changelog</a>，关注 breaking changes 和大特性。老教程里的 `@app.on_event` 式过时写法（fast mode、老权限模式）要识别出来。</blockquote>
+<hr/>
+<h1>第二部分：上手</h1>
+<h2>§04 你的第一个任务（5 分钟看到它干活）</h2>
+<h3>痛点：不知道第一个 prompt 怎么写</h3>
+<p>装上之后最大的卡点：不知道第一个任务该长什么样、怎么算成功。先跑起来，再讲道理。</p>
+<pre><code># 装（npm 全局，或直接 npx 免装）
+npm install -g @anthropic-ai/claude-code
+# 或每次用 npx 跑（不留全局）
+npx @anthropic-ai/claude-code
+
+# 进你的项目目录启动
+cd your-project
+claude
+</code></pre>
+<p>进去后，给它<strong>第一个任务</strong>——别问"你能做什么"，直接给一个真实的小活：</p>
+<pre><code>&gt; 给这个项目的 README 写一段&quot;快速开始&quot;，读 package.json 找启动命令，
+  写完后别改其他文件
+</code></pre>
+<p>然后<strong>看它干活</strong>：它会自己读 `package.json`、读现有 README、写一段、可能问你能不能改 README。这是 Claude Code 的"魔法"——你给目标，它自己规划步骤、用工具、产出结果。</p>
+<pre><code>推荐                              不推荐
+直接给一个真实小活（&quot;写快速开始&quot;）  问&quot;你能做什么&quot;（浪费一轮）
+描述终态 + 边界（&quot;别改其他文件&quot;）   只说&quot;帮我搞下这个项目&quot;（太模糊）
+看它每步在干什么、适时给反馈        低头刷手机等它交差
+</code></pre>
+<blockquote class="core-advice">：第一个任务给一个<strong>真实、小、有明确边界</strong>的活，比如"给 README 加快速开始段落"。重点不是这个任务的产出，是让你观察它的<strong>工作方式</strong>——它怎么规划、怎么用工具、什么时候问你。看懂这个，你就知道以后怎么跟它配合。</blockquote>
+<blockquote><strong>过渡叙事</strong>：你刚跑通第一个任务，直接在对话里给 prompt 够用。但当任务变复杂、要重复、要让它稳定遵守你的规矩时，光靠对话里的 prompt 不够——你需要把约束写进它能一直读到的文件（CLAUDE.md），把重复流程变成命令（slash command），把专业能力变成技能（skill）。§05 之后讲这些。</blockquote>
+<hr/>
+<h2>§05 描述需求的艺术：prompt 怎么写</h2>
+<h3>痛点：写"帮我优化一下"，结果它改了一堆你不要的</h3>
+<p>这是新手最常踩的坑：prompt 太模糊，Claude 只能猜，猜错了你来回纠正，比自己做还累。<strong>模糊的 prompt 是一切效率问题的源头。</strong></p>
+<p>Anthropic 官方的 agentic coding 最佳实践（<a href="https://www.anthropic.com/engineering">Anthropic Engineering 2025-04</a>）核心一条：<strong>给 agent 清晰、可验证的目标，而不是步骤指令。</strong></p>
+<pre><code>推荐                              不推荐
+&quot;把这个 API 响应从 2s 优化到       &quot;帮我优化一下这个代码&quot;
+ 500ms，瓶颈在数据库查询，别改      （太模糊，它只能猜，可能改一堆）
+ 接口签名&quot;                         
+&quot;加一个 /health 端点返回           &quot;加点测试&quot;
+ {status:ok}，配 pytest 测它&quot;      
+描述终态（做成什么样）+ 边界       描述步骤（先做X再做Y）——它自己会规划
+给可验证的完成标准                  &quot;做好了&quot;就行（没法验收）
+</code></pre>
+<h3>一个好 prompt 的四件套</h3>
+<pre><code>1. 终态：做成什么样（可观测、可验收）
+   → &quot;加 /health 端点，返回 {status:&#x27;ok&#x27;}，HTTP 200&quot;
+
+2. 上下文：相关文件/约束/技术栈
+   → &quot;用现有的 FastAPI app，路由放 routers/health.py&quot;
+
+3. 边界：什么别碰
+   → &quot;别动 main.py 的现有路由，别加新依赖&quot;
+
+4. 验收：怎么算做对了
+   → &quot;curl http://localhost:8000/health 返回 200 + JSON，pytest 过&quot;
+</code></pre>
+<p>这四件套不是每次都要写全——简单任务给终态就够。但当你发现它老跑偏，九成是这四件套里漏了哪件。</p>
+<blockquote class="core-advice">：写 prompt 时想象你在给一个<strong>聪明但不了解你项目的新同事</strong>派活——他会问"做成什么样？""用哪个文件？""不能碰什么？""怎么算完？"。你提前把这些答了，就是好 prompt。<strong>描述终态，别描述步骤</strong>——让它自己规划怎么干，你只管结果对不对。</blockquote>
+<hr/>
+<h1>第三部分：配置与记忆（让 Claude 稳定记住你）</h1>
+<h2>§06 CLAUDE.md：最重要的一个文件</h2>
+<h3>痛点：每次都要重复"记得用 pnpm""别动 config""测试用 pytest"</h3>
+<p>这是最典型的浪费：同样的约束，你每次对话都要口头重复一遍，因为它记不住。`CLAUDE.md` 就是为这个生的——<strong>项目级的、每次会话自动加载的"规矩说明书"</strong>。你写一次，它每次都读到。</p>
+<p>官方原话：CLAUDE.md 是 Claude Code 的"项目记忆"，加载时会自动读进上下文（<a href="https://code.claude.com/docs/en/memory">code.claude.com/docs/en/memory</a>，逐字核实）。</p>
+<h3>加载层级（从广到窄，越靠近 cwd 优先级越高）</h3>
+<pre><code>Enterprise（IT/DevOps 管理的策略）     ← 最广，全公司
+   ↓
+User（~/.claude/CLAUDE.md）            ← 你个人的全局规矩
+   ↓
+Project（./CLAUDE.md 或 ./.claude/CLAUDE.md）  ← 项目级，进 git 共享
+   ↓
+Local（./CLAUDE.local.md）             ← 你本机的，进 .gitignore
+</code></pre>
+<p>它们<strong>串联拼接</strong>（不是覆盖），越靠近当前工作目录的越晚读取、优先级越高。所以：团队共享的规矩写 `./CLAUDE.md`（进 git），个人偏好写 `./CLAUDE.local.md`（不进 git）或 `~/.claude/CLAUDE.md`（全局）。</p>
+<h3>写什么 / 不写什么</h3>
+<p>写：构建/测试命令、项目约定（"用 pnpm 不用 npm"）、项目结构、"始终执行 X"规则。 不写：超过 <strong>200 行</strong>（官方建议）、多步流程（移到 skill）、只对局部代码有效的（移到 `.claude/rules/`）。</p>
+<pre><code># CLAUDE.md 示例（精简）
+
+## 构建/测试
+- 装：`pnpm install`
+- 跑：`pnpm dev`
+- 测：`pnpm test`（改完代码必须跑）
+
+## 约定
+- 包管理用 pnpm，禁止 npm/yarn
+- 提交前跑 `pnpm lint`
+- 组件放 src/components/，按领域分
+
+## 别碰
+- 不要改 src/config/production.ts
+- 不要加新依赖，先在对话里讨论
+</code></pre>
+<h3>两个最常踩的坑（必须知道）</h3>
+<p><strong>坑 1：@import 不省 token。</strong> `@path/to/file` 能把别的文件拼进 CLAUDE.md，但<strong>导入的文件会全量加载进上下文，不节省 token</strong>（<a href="https://code.claude.com/docs/en/memory">官方 memory 文档</a>）。它的作用是组织（拆分大文件），不是省 context。想省 context 用 `.claude/rules/` 的路径范围规则（§08）。</p>
+<p><strong>坑 2：CLAUDE.md 是上下文，不是强制层。</strong> 它是"行为引导"，模型<strong>绝大多数时候会遵守，但不保证 100%</strong>。如果你需要<strong>硬拦</strong>某个操作（比如绝不能读 `.env`），用 PreToolUse hook（§16），别指望 CLAUDE.md。把 CLAUDE.md 当"新同事必读手册"，不当"强制执行的策略"。</p>
+<pre><code>推荐                              不推荐
+团队规矩写 ./CLAUDE.md（进 git）   重复每次口头说&quot;记得用 pnpm&quot;
+个人偏好写 CLAUDE.local.md         把个人偏好写进共享的 CLAUDE.md
+控制在 200 行内，精简               堆 800 行巨无霸（加载慢、稀释重点）
+硬拦用 hook（PreToolUse）          指望 CLAUDE.md 100% 强制执行
+大文件用 @import 组织              以为 @import 省 token（其实全量加载）
+</code></pre>
+<blockquote class="core-advice">：写一个精简（< 200 行）的 CLAUDE.md，只放"每次都该知道"的规矩：构建/测试命令、关键约定、禁区。这是 Claude Code 投入产出比最高的一个文件——你写一次，它每次会话都读到。<strong>记住两个反直觉点</strong>：@import 不省 token（只组织）、CLAUDE.md 不是强制层（硬拦用 hook）。当 Claude 同一个错犯第二次，就该往 CLAUDE.md 加一条了。</blockquote>
+<hr/>
+<h2>§07 记忆系统：CLAUDE.md vs auto memory vs # 记忆</h2>
+<h3>痛点：四种"记忆"机制分不清，不知道用哪个</h3>
+<p>Claude Code 有好几套记忆机制，新手常混。理清它们：</p>
+<table>
+<thead><tr>
+<th>机制</th>
+<th>谁掌控</th>
+<th>存哪</th>
+<th>何时加载</th>
+<th>适合放什么</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>CLAUDE.md</strong></td>
+<td>你（手写）</td>
+<td>项目根 / `~/.claude/`</td>
+<td>每次会话全量</td>
+<td>编码标准、架构、工作流</td>
+</tr>
+<tr>
+<td><strong>auto memory</strong></td>
+<td>Claude（自己写）</td>
+<td>`~/.claude/projects/<project>/memory/`</td>
+<td>MEMORY.md 前 200 行/25KB</td>
+<td>构建命令、调试洞察、它发现的偏好</td>
+</tr>
+<tr>
+<td><strong>`#` 快速记忆</strong></td>
+<td>你（对话里触发）</td>
+<td>→ auto memory 或 CLAUDE.md</td>
+<td>同上</td>
+<td>临时记一句</td>
+</tr>
+<tr>
+<td><strong>`.claude/rules/`</strong></td>
+<td>你（手写）</td>
+<td>`.claude/rules/*.md`</td>
+<td>路径匹配时才加载</td>
+<td>只对部分代码有效的规则</td>
+</tr>
+</tbody></table>
+<p><strong>`#` 快速记忆的分流</strong>（关键）：对话里说"remember X" / "always use pnpm" → 进 <strong>auto memory</strong>；说"add this to CLAUDE.md" → 进 <strong>CLAUDE.md</strong>。一字之差，去向不同。</p>
+<p><strong>auto memory 怎么工作</strong>：Claude 自己往 `~/.claude/projects/<project>/memory/` 写 MEMORY.md（索引）+ topic 文件。MEMORY.md 前 200 行或 25KB（取小）自动加载，topic 文件按需读。<strong>同一 git 仓库的所有 worktree 共享一个 memory 目录</strong>（<a href="https://code.claude.com/docs/en/memory">官方 memory 文档</a>）。</p>
+<p><strong>`/memory` 命令</strong>：列出所有加载的 CLAUDE.md/rules、开关 auto memory、打开 memory 文件夹、编辑任意文件。管记忆就看这一个命令。</p>
+<pre><code>推荐                              不推荐
+稳定的团队规矩 → CLAUDE.md         把 Claude 自己发现的偏好手写进 CLAUDE.md
+让 Claude 记调试发现 → auto memory  重复口头告诉它同一个 build 命令
+局部规则 → .claude/rules/（带 paths） 把局部规则塞 CLAUDE.md（稀释全局）
+定期 /memory 审一遍记忆             从不管它记了啥（可能记错或过时）
+</code></pre>
+<blockquote class="core-advice">：分清"你掌控的"和"Claude 掌控的"——编码标准/架构/工作流你写进 CLAUDE.md（你掌控）；构建命令/调试洞察让它自己记进 auto memory（它掌控）。<strong>定期跑 `/memory` 审一遍</strong>，删掉过时或记错的——auto memory 是 Claude 自己写的，可能记歪，得你校对。</blockquote>
+<hr/>
+<h2>§08 .claude/rules/：路径范围规则（省 context 的正确姿势）</h2>
+<h3>痛点：CLAUDE.md 塞太多，重点被稀释</h3>
+<p>有些规则只对一部分代码有效（比如"改 API 层时用这套错误处理""动数据库时走迁移"）。全塞 CLAUDE.md 会稀释全局重点。`.claude/rules/` 解决这个——<strong>只在 Claude 读匹配文件时才加载</strong>。</p>
+<pre><code>---
+# .claude/rules/api-error-handling.md
+paths: [&quot;src/api/**/*.ts&quot;]
+---
+# API 层错误处理规范
+- 所有 API 错误用统一的 AppError 类
+- 返回标准错误格式 {error: {code, message}}
+- 禁止裸 throw 到路由外
+</code></pre>
+<p>`paths` frontmatter 用 glob 匹配——Claude 读 `src/api/` 下的文件时才加载这条规则。<strong>这才是省 context 的正确姿势</strong>（对比 §06 说的：@import 不省 token，path-scoped rules 才省）。</p>
+<blockquote class="core-advice">：规则分两类——"全局都该知道"进 CLAUDE.md，"只对部分代码有效"进 `.claude/rules/`（带 `paths`）。这样 CLAUDE.md 保持精简聚焦，局部规则按需加载不占常驻 context。</blockquote>
+<hr/>
+<h1>第四部分：上下文管理（性能生死线）</h1>
+<h2>§09 上下文窗口：用文件当主存，别用对话当主存</h2>
+<h3>痛点：聊着聊着它就"忘了"前面说的、开始重复或跑偏</h3>
+<p>这是 Claude Code 最常见的体验崩坏——<strong>上下文窗口塞满后，模型推理质量下降</strong>（越接近 200K 上限越差，社区俗称"drowning it"，<a href="https://medium.com/@nuno.roberto/claude-code-is-not-broken-you-are-drowning-it-7d7635765c10">Medium: you are drowning it</a>）。它不是"坏了"，是你把它"淹"了。</p>
+<p><strong>根本解法：用文件当主存，别用对话当主存。</strong></p>
+<pre><code>对话窗口 = 短期工作记忆（当前任务）
+文件      = 长期主存（状态、计划、约束）
+</code></pre>
+<p>一个任务要做很久时，别把所有状态留在对话里。让它把中间状态、计划、决策<strong>写进文件</strong>（比如 `.claude/plans/`、`TODO.md`、session 文件）。这样即使 `/clear` 清空对话，新会话读文件就能接着干。</p>
+<h3>/context：随时看用量</h3>
+<pre><code>&gt; /context
+</code></pre>
+<p>会话开始时和长会话中周期性跑，看 200K token 预算用了多少（彩色网格）。<strong>超过 60-70% 就该考虑 /compact 或开新会话了</strong>——别等到 95% 才动手，那时候质量已经掉了一大截。</p>
+<pre><code>推荐                              不推荐
+长任务状态写文件                  把所有上下文留在对话里
+定期 /context 看用量              从不管、用到崩
+超 70% 主动 /compact 或开新会话   拖到 95%+ 才处理（质量已掉）
+跨会话靠文件接力                  指望它&quot;记住&quot;上次会话
+</code></pre>
+<blockquote class="core-advice">：把对话窗口当"短期工作记忆"，把文件当"长期主存"。长任务让 Claude 把状态/计划写文件，这样能跨 `/clear` 接力。<strong>定期 `/context` 看用量，超 70% 主动处理</strong>——上下文越接近上限推理越差，别淹了它。</blockquote>
+<hr/>
+<h2>§10 /compact vs /clear vs /resume：三个命令分清</h2>
+<h3>痛点：不知道何时该压缩、何时该清空</h3>
+<p>三个命令都涉及上下文，但用途完全不同，用错就浪费或丢上下文。</p>
+<table>
+<thead><tr>
+<th>命令</th>
+<th>干什么</th>
+<th>何时用</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>`/compact`</strong></td>
+<td>把当前对话<strong>摘要</strong>后替换进上下文，继续同一任务</td>
+<td>同一任务接近上限，想继续不丢主线</td>
+</tr>
+<tr>
+<td><strong>`/clear`</strong></td>
+<td><strong>清空</strong>上下文，完全重来</td>
+<td>切换到不同任务/方向</td>
+</tr>
+<tr>
+<td><strong>`/resume`</strong> / `claude --resume`</td>
+<td><strong>恢复</strong>历史会话，完整还原上下文</td>
+<td>想回到某个之前的会话继续</td>
+</tr>
+<tr>
+<td><strong>`/rewind`</strong></td>
+<td>恢复到 `/clear` <strong>之前</strong>的状态（2026 新增，v2.1.191）</td>
+<td>手滑 `/clear` 了想找回</td>
+</tr>
+</tbody></table>
+<p><strong>关键判断</strong>：还要继续当前任务吗？要 → `/compact`（保留摘要继续）；不要了、换任务 → `/clear`（干净重来）。</p>
+<p><strong>自动 compact 的坑</strong>：接近上限时 Claude Code 会自动 compact，但很多用户发现<strong>自动 compact 后质量下降</strong>（摘要可能丢细节）。倾向<strong>手动提前 compact</strong>（在 70-80% 时主动 /compact），或直接开新会话用文件接力。</p>
+<h3>跨 /clear 的标准做法（文件接力）</h3>
+<pre><code>1. 任务做到一半要切走 → 让 Claude 把当前状态写进文件
+   &quot;把当前进度、未完成项、下一步计划写进 .claude/session.md&quot;
+
+2. /clear 清空对话
+
+3. 新会话读文件继续
+   &quot;读 .claude/session.md，接着干&quot;
+</code></pre>
+<p>这样上下文干净，又不丢进度。这是长任务跨会话的标准模式。</p>
+<pre><code>推荐                              不推荐
+继续同任务 → /compact              继续同任务却 /clear（丢主线）
+换任务 → /clear                    换任务还硬撑旧上下文（污染）
+长任务用文件接力跨 /clear          指望单个会话跑到底（必然崩）
+70-80% 手动 /compact              等 95% 自动 compact（质量已掉）
+</code></pre>
+<blockquote class="core-advice">：三命令记一句话——<strong>继续 `/compact`、换任务 `/clear`、回历史 `/resume`</strong>。别依赖自动 compact（摘要可能丢细节），在 70-80% 手动 `/compact`。跨会话用"写文件 → `/clear` → 新会话读文件"接力，这是长任务不崩的标准模式。</blockquote>
+<hr/>
+<h2>§11 长会话策略：让它稳定不跑偏</h2>
+<h3>痛点：长会话越跑越偏、越跑越慢</h3>
+<p>长会话（几十轮、改一堆文件）有三个衰退：上下文爆（推理变差）、目标漂移（它忘了最初要干啥）、累积错误（早期的小错滚成大错）。对策是<strong>分段 + 锚定</strong>。</p>
+<p><strong>分段</strong>：把大任务拆成可验收的小段，每段做完验收一次（跑测试/看 diff），别让它一口气跑 50 步你才看。</p>
+<p><strong>锚定</strong>：每过几轮，重申目标和约束（"提醒你，目标是 X，不能动 Y"）。或者用 `/loop` + 锚文件让它每轮重读关键文件防漂移。</p>
+<pre><code>推荐                              不推荐
+大任务拆小段、每段验收             一口气让它跑 50 步才看
+定期重申目标 + 让它重读锚文件       指望它自己记着最初目标
+状态写文件、跨会话接力             单会话死磕到底
+跑偏了早点 /clear 重来             硬撑偏掉的会话（越撑越偏）
+</code></pre>
+<blockquote class="core-advice">：长会话防衰退靠"分段 + 锚定"——拆成可验收小段（每段跑测试）、定期重申目标让它重读关键文件。<strong>跑偏了别硬撑，早点 `/clear` 用文件接力重开</strong>，比硬纠正一个偏掉的会话省力得多。</blockquote>
+<hr/>
+<h1>第五部分：扩展能力</h1>
+<h2>§12 Plan Mode：先想后做</h2>
+<h3>痛点：让它直接改，结果改错了大方向，返工更贵</h3>
+<p>复杂任务（新功能、大重构、架构决策），直接让它动手，万一方向错了，改了一堆要回滚。<strong>Plan mode 让它先出方案、你审完再动手</strong>。</p>
+<p><strong>进入</strong>：`Shift+Tab` 按两次，或 `/plan`（v2.1.0+）。<strong>退出</strong>：再按 `Shift+Tab`。Plan 模式下它只读不写，产出一份计划（markdown 文件）给你审。</p>
+<pre><code>推荐                              不推荐
+新功能/大重构 → 先 plan 再执行      复杂任务直接让它改（方向错返工贵）
+审 plan 时提反馈、对齐再放手        plan 看都不看直接批准
+简单任务跳过 plan                  简单任务也 plan（过度）
+</code></pre>
+<blockquote class="core-advice">：复杂任务（新功能/重构/架构）先 Plan Mode 出方案、你审完再放手——方向错了改一行 plan，比改一堆代码便宜。简单任务别 plan（过度）。Plan + `/code-review` 是高级工作流标配：先 plan 对齐、执行后 review 把关。</blockquote>
+<hr/>
+<h2>§13 Subagents：委托隔离任务</h2>
+<h3>痛点：主线上下文被探索/调研污染，主线任务变慢</h3>
+<p>让 Claude 在主线里"先探索一下整个代码库再回来改"，探索的过程（读了几十个文件）会塞满主线上下文，主线任务反而变慢变差。<strong>Subagent 解决这个——把隔离任务委托给独立上下文的 worker，主线不被污染。</strong></p>
+<p><strong>什么时候用</strong>：探索大型代码库、并行做几个独立模块、密集研究（只取结论不要过程）。主线上下文保持干净。</p>
+<p><strong>自定义 agent</strong>：放 `~/.claude/agents/`（全局）或 `./.claude/agents/`（项目），YAML frontmatter 定义 `name`/`description`/`tools`/`model`：</p>
+<pre><code># .claude/agents/code-reviewer.md
+---
+name: code-reviewer
+description: 代码审查专家，找 bug 和可简化处
+tools: Read, Grep, Glob    # 限制工具（只读审查）
+model: sonnet              # 审查用 Sonnet 够了，省成本
+---
+你是代码审查专家...（系统提示）
+</code></pre>
+<h3>并行的硬规则（必须知道）</h3>
+<p><strong>只有 agent 修改不同文件才能并行</strong>。两个 agent 同时改同一个文件 → 冲突。主线要懂领域边界才能正确路由任务。<strong>文件冲突是并行最常见的坑。</strong></p>
+<p>深度上限 <strong>5 层</strong>（subagent 套 subagent 最多 5 层）。后台 subagent 的权限提示现在浮到主会话（不再自动拒绝）。</p>
+<pre><code>推荐                              不推荐
+探索/调研/独立模块 → subagent      主线里做大量探索（污染上下文）
+并行只在不同文件                   为了并行而并行同一批文件（冲突）
+审查类 agent 限制工具（只读）       给 subagent 全部工具（过度授权）
+为重复任务建固定 agent             临时 Task 调用就够了却建 agent
+</code></pre>
+<blockquote class="core-advice">：用 subagent 隔离"过程重、结论轻"的活（探索、调研、审查）——主线只收结论，上下文不被污染。<strong>并行铁律：只在不同文件</strong>，同文件必冲突。为重复任务（如代码审查）建固定 agent + 限制工具，比每次临时 Task 高效。</blockquote>
+<hr/>
+<h2>§14 Skills：Claude 自主调用的专业知识</h2>
+<h3>痛点：同一类专业活（比如生成最佳实践文档）每次都要从头教</h3>
+<p>Skill 是<strong>模块化的专业能力包</strong>——你把一套专业知识 + 流程写进 SKILL.md，Claude <strong>自主判断何时用</strong>（基于 description 和触发词），按需加载，不占常驻 context。</p>
+<p><strong>结构</strong>：`.claude/skills/<skill-name>/SKILL.md`（+ 可选 references/、scripts/、模板）。SKILL.md 顶部 YAML frontmatter（`name`/`description`/`triggers`）。</p>
+<pre><code>---
+# .claude/skills/deploy-guide/SKILL.md
+name: deploy-guide
+description: 生成部署文档。Triggers: &quot;部署文档&quot;, &quot;deploy guide&quot;
+---
+# 部署文档生成
+（流程 + 模板 + 注意事项）
+</code></pre>
+<p><strong>Skill vs Slash Command vs Subagent</strong>（最常混的三兄弟）：</p>
+<table>
+<thead><tr>
+<th>机制</th>
+<th>谁触发</th>
+<th>本质</th>
+<th>适合</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Skill</strong></td>
+<td>Claude 自主</td>
+<td>按需加载的<strong>专业知识</strong></td>
+<td>它判断何时需要的领域能力</td>
+</tr>
+<tr>
+<td><strong>Slash command</strong></td>
+<td>你显式（`/xxx`）</td>
+<td><strong>工作流模板</strong></td>
+<td>你手动启动的重复流程</td>
+</tr>
+<tr>
+<td><strong>Subagent</strong></td>
+<td>主线委托</td>
+<td>隔离 context 的 <strong>worker</strong></td>
+<td>过程重、要隔离的任务</td>
+</tr>
+</tbody></table>
+<p>一句话：Skill = 它自己知道什么时候用的知识；Command = 你喊它才跑的流程；Subagent = 派出去干的工人。</p>
+<pre><code>推荐                              不推荐
+领域能力（多变体）→ skill          每次从头教同一类专业活
+固定流程（你手动启动）→ command     把固定流程写成 skill（它可能不主动调）
+隔离重活 → subagent                把 subagent 当 skill 用（context 不隔离）
+</code></pre>
+<blockquote class="core-advice">：把"同一类专业活"沉淀成 Skill（如部署文档、安全审查），Claude 自主判断调用——比每次从头教高效。<strong>Skill/Command/Subagent 三选一</strong>：它自主调的知识用 Skill、你手动喊的流程用 Command、要隔离 context 的活用 Subagent。</blockquote>
+<hr/>
+<h2>§15 自定义 Slash Commands</h2>
+<h3>痛点：同一套操作每次都要重新打一长串</h3>
+<p>`/fix-issue 123`、`/deploy staging`、`/review-pr`——你重复打的流程，写成 slash command 一键触发。</p>
+<p><strong>位置</strong>：`.claude/commands/`（项目，`/project:xxx`）或 `~/.claude/commands/`（全局，`/user:xxx`）。子目录造命名空间（`frontend/lint.md` → `/project:frontend:lint`）。</p>
+<pre><code>---
+# .claude/commands/fix-issue.md
+description: 根据 issue 号修 bug
+allowed-tools: Read, Edit, Bash
+---
+读 issue $ARGUMENTS 的内容，分析根因，改代码，跑测试，给我 diff。
+</code></pre>
+<p><strong>`$ARGUMENTS`</strong>：占位符，替换成命令后输入（`/fix-issue 123` → `"123"`）。<strong>YAML frontmatter</strong>（可选）：`description`/`allowed-tools`/`model`。可用 `` !`command` `` 注入 shell 输出（比如 `` !`git branch --show-current` `` 自动带当前分支）。</p>
+<p>自 v1.0.123 起 Claude 能<strong>自己调用你的 slash command</strong>（`SlashCommand` 工具）——所以 command 不只是人用的，agent 也会调。</p>
+<pre><code>推荐                              不推荐
+重复流程写成 command               每次重打一长串
+用 $ARGUMENTS 参数化               为每个值写一个 command
+限制 allowed-tools                  给 command 全部工具（过度授权）
+</code></pre>
+<blockquote class="core-advice">：你重复打的流程（修 issue、部署、review）写成 slash command 一键触发。用 `$ARGUMENTS` 参数化、`allowed-tools` 限制权限。<strong>注意 Claude 自己也能调你的 command</strong>——所以写好 description，让它在合适时机自主调用。</blockquote>
+<hr/>
+<h2>§16 Hooks：真正的自动化和强制层</h2>
+<h3>痛点：想"每次改完自动跑 lint""绝不许读 .env"——光靠 CLAUDE.md 不靠谱</h3>
+<p>CLAUDE.md 是引导不是强制（§06）。要<strong>硬自动化</strong>（每次 X 后自动 Y）或<strong>硬拦截</strong>（绝不能 Z），用 hook。Hook 是 harness 在工具调用前/后<strong>实际执行的脚本</strong>，由不得模型听不听。</p>
+<p><strong>事件</strong>：`PreToolUse`（调用前，可拦截）/ `PostToolUse`（调用后）/ `Stop`（任务结束）/ `SessionStart`（会话开始）/ `UserPromptSubmit`（你发 prompt 时）等。</p>
+<p><strong>配置</strong>（`.claude/settings.json`）：event → matcher（工具名）→ command 三层嵌套：</p>
+<pre><code>{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [{
+      &quot;matcher&quot;: &quot;Edit|Write&quot;,
+      &quot;hooks&quot;: [{ &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;pnpm lint --fix&quot; }]
+    }],
+    &quot;PreToolUse&quot;: [{
+      &quot;matcher&quot;: &quot;Read&quot;,
+      &quot;hooks&quot;: [{ &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;.claude/hooks/block-env-read.sh&quot; }]
+    }]
+  }
+}
+</code></pre>
+<p><strong>退出码约定</strong>（关键）：`0` = 继续；`2` = 阻断该工具调用（PreToolUse 专用，反馈给 Claude 让它换方法）；其他非零 = 错误给用户。</p>
+<p><strong>典型用法</strong>：PostToolUse 改完文件自动 lint/format；PreToolUse 拦读 `.env`（exit 2）；Stop 任务结束跑测试；SessionStart 加载环境。</p>
+<p><strong>坑</strong>：matcher 用连字符 id（`code-reviewer`、`mcp<strong>brave-search`）要精确（`mcp</strong>brave-search__.*`）；逗号分隔 matcher 曾静默不触发（v2.1.191 已修，<a href="https://code.claude.com/docs/en/hooks">官方 hooks 文档</a>）。</p>
+<pre><code>推荐                              不推荐
+改完自动 lint → PostToolUse        指望模型&quot;记得&quot;改完跑 lint
+硬拦读 .env → PreToolUse(exit 2)   在 CLAUDE.md 写&quot;别读 .env&quot;（不强制）
+任务结束跑测试 → Stop              每次手动催它跑测试
+限制 matcher 精确匹配               写宽 matcher 误触发
+</code></pre>
+<blockquote class="core-advice">：要"硬自动化"或"硬拦截"用 hook，别指望 CLAUDE.md。<strong>记住退出码：`0` 继续、`2` 阻断</strong>（PreToolUse 拦截专用）。最常用的两个：PostToolUse 改完自动 lint/format、PreToolUse 拦危险操作（读 `.env`、删文件）。</blockquote>
+<hr/>
+<h2>§17 MCP：接外部系统</h2>
+<h3>痛点：要让它查数据库、调浏览器、读 Notion——原生工具干不了</h3>
+<p>Claude Code 原生工具是文件 + bash。要接外部系统（数据库、API、浏览器、文档源），用 <strong>MCP（Model Context Protocol）</strong>。MCP 是"接外部能力的标准接口"。</p>
+<p><strong>配置</strong>：`.mcp.json`（项目根，进 git 共享）或 `~/.claude.json`（全局）。<strong>注意不是</strong> Claude Desktop 的 `claude_desktop_config.json`（常见坑）。CLI：`claude mcp add/login/logout <name>`（v2.1.186+）。</p>
+<pre><code>{
+  &quot;mcpServers&quot;: {
+    &quot;postgres&quot;: {
+      &quot;command&quot;: &quot;npx&quot;,
+      &quot;args&quot;: [&quot;-y&quot;, &quot;@modelcontextprotocol/server-postgres&quot;,
+               &quot;postgresql://localhost/mydb&quot;]
+    }
+  }
+}
+</code></pre>
+<p><strong>传输</strong>：stdio / HTTP / SSE / OAuth。命名 `mcp<strong>server</strong>tool`。</p>
+<p><strong>何时用 MCP</strong>：接 Claude Code 原生不支持的外部系统。如果文件/bash/subagent 能干，就别上 MCP（多一层依赖）。</p>
+<pre><code>推荐                              不推荐
+接 DB/浏览器/外部 API → MCP        文件能干的事上 MCP（多此一举）
+.mcp.json 放项目根进 git           用 claude_desktop_config.json（错的文件）
+优先 stdio 本地 server             一上来就 OAuth 远程（复杂）
+</code></pre>
+<blockquote class="core-advice">：MCP 用来接外部系统（数据库、浏览器、API）——原生工具干不了的领域才上。配置用 `.mcp.json`（项目根，进 git），<strong>别和 Claude Desktop 的配置文件搞混</strong>。能用原生工具/subagent 解决的，别上 MCP（少一层依赖）。</blockquote>
+<hr/>
+<h2>§18 五选一：skill / command / subagent / hook / MCP 决策树</h2>
+<h3>痛点：五个扩展机制，不知道用哪个</h3>
+<p>这是新手最困惑的——五个机制（skill/command/subagent/hook/MCP）功能有重叠。给一个决策树：</p>
+<pre><code>你要干什么？
+│
+├─ 接外部系统（DB/浏览器/API）        → MCP
+│
+├─ 自动化/强制（无需模型同意）        → Hook
+│   ├─ 拦截危险操作（PreToolUse）
+│   └─ 改完自动干啥（PostToolUse/Stop）
+│
+├─ 委托隔离任务（过程重、要隔离 context）→ Subagent
+│
+└─ 沉淀重复能力/流程
+    ├─ 你手动启动的固定流程            → Slash Command
+    └─ Claude 自主判断何时用的领域能力  → Skill
+</code></pre>
+<p><strong>一句话判据</strong>：外部系统=MCP；强制自动化=Hook；隔离重活=Subagent；你喊才跑=Command；它自己知道何时用=Skill。</p>
+<blockquote class="core-advice">：遇到"我想让它自动 X"先问"要不要模型同意"——要同意走 Skill/Command/Subagent，不要同意（强制）走 Hook。接外部系统才是 MCP。<strong>别一上来就五个全上</strong>——从最简单的（CLAUDE.md + 一个 command）开始，痛点了再加机制。</blockquote>
+<hr/>
+<h1>第六部分：权限与安全</h1>
+<h2>§19 权限模式：给多少自由</h2>
+<h3>痛点：要么每步问烦死，要么全放开危险</h3>
+<p>Claude Code 每个工具调用默认问你（安全但烦）。权限模式控制"给它多少自由"：</p>
+<table>
+<thead><tr>
+<th>模式</th>
+<th>能干什么</th>
+<th>何时用</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>default</strong></td>
+<td>只读 + 询问后写</td>
+<td>默认，最安全</td>
+</tr>
+<tr>
+<td><strong>acceptEdits</strong></td>
+<td>读 + 文件编辑 + 常见文件命令</td>
+<td>信任的常规开发，减少询问</td>
+</tr>
+<tr>
+<td><strong>plan</strong></td>
+<td>只读规划</td>
+<td>Plan mode</td>
+</tr>
+<tr>
+<td><strong>bypassPermissions</strong></td>
+<td>全部批准（不问）</td>
+<td>⚠️ 危险，仅隔离环境/无人值守</td>
+</tr>
+<tr>
+<td><strong>auto</strong>（新）</td>
+<td>每个工具过权限闸，但破坏性操作拦</td>
+<td>半自动，带护栏</td>
+</tr>
+</tbody></table>
+<p><strong>设置</strong>：CLI `--permission-mode <mode>`；settings.json `"defaultMode": "acceptEdits"`；`/permissions` 查看所有规则。</p>
+<p><strong>deny 规则是强制层</strong>（关键）：`permissions.deny` <strong>无论模型决定什么都拦</strong>——这是真正的硬墙，比 CLAUDE.md 可靠。要"绝不能 X"就写 deny。</p>
+<p><strong>2026 安全收紧</strong>：auto mode 现在默认拦破坏性 git（`git reset --hard`、`git checkout -- .`、`git clean -fd`、非本会话提交的 `git commit --amend`）和 `terraform/pulumi/cdk destroy`；新增 `sandbox.credentials` 阻止读凭证文件（<a href="https://code.claude.com/docs/en/permissions">权限文档</a>）。</p>
+<p><strong>危险操作</strong>：`bypassPermissions` 在 Linux/macOS <strong>拒绝 root/sudo 启动</strong>（防系统级破坏）；Remote Control 不支持 auto/bypass。</p>
+<pre><code>推荐                              不推荐
+常规开发 → acceptEdits（减少询问）  全程 default（每步问，烦死）
+绝不能碰的 → permissions.deny       指望 CLAUDE.md 拦（不强制）
+无人值守 → bypassPermissions       无人值守用 default（每步问，卡死）
++ 护栏（deny 危险操作）             裸 bypass 不设防
+</code></pre>
+<blockquote class="core-advice">：常规信任的开发用 `acceptEdits` 减少询问；<strong>绝不能碰的操作写 `permissions.deny`（强制层，比 CLAUDE.md 可靠）</strong>；无人值守才用 bypassPermissions 且必配护栏。<strong>别用 root/sudo 跑 bypassPermissions</strong>（系统级破坏风险，官方直接拒）。</blockquote>
+<hr/>
+<h2>§20 安全实践清单</h2>
+<h3>痛点：给 agent 自由后，怎么不让它闯祸</h3>
+<p>给 agent 自由（acceptEdits/bypass）后，安全靠<strong>多层防御</strong>：</p>
+<ol><li><strong>deny 危险操作</strong>（强制层）：`permissions.deny` 拦 `rm -rf`、读 `.env`、改生产配置。</li><li><strong>sandbox.credentials</strong>（2026 新）：阻止沙盒命令读凭证文件/敏感环境变量。</li><li><strong>PreToolUse hook 拦截</strong>：读 `.env`/密钥文件时 exit 2。</li><li><strong>CLAUDE.md 标禁区</strong>：行为引导（软），配合 deny（硬）。</li><li><strong>隔离环境</strong>：危险活在容器/worktree 里跑，别在主系统裸跑。</li><li><strong>审查产出</strong>：`/code-review` 提交前过一遍，看 diff。</li></ol>
+<pre><code>推荐                              不推荐
+多层防御（deny + hook + 审查）      只靠 CLAUDE.md 一层
+危险活在容器/worktree               在主系统裸跑 bypass
+sandbox.credentials 开              让它能读凭证
+提交前 /code-review                 直接 push 不看
+</code></pre>
+<blockquote class="core-advice">：安全靠<strong>多层防御</strong>——`permissions.deny`（硬墙）+ PreToolUse hook（拦密钥）+ sandbox.credentials（2026 新，拦凭证）+ `/code-review`（审产出）。<strong>绝不能只靠 CLAUDE.md</strong>——它是引导不是强制。危险活在隔离环境跑。</blockquote>
+<hr/>
+<h1>第七部分：模型、后台、Git</h1>
+<h2>§21 模型选择：Opus / Sonnet / Haiku 三档</h2>
+<h3>痛点：全用最贵的烧钱，全用最便宜的不够强</h3>
+<p>Claude Code 支持三档模型，按任务难度选：</p>
+<table>
+<thead><tr>
+<th>档</th>
+<th>特点</th>
+<th>适合</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Opus</strong></td>
+<td>最强最贵</td>
+<td>复杂长任务、架构决策、难题</td>
+</tr>
+<tr>
+<td><strong>Sonnet</strong></td>
+<td>平衡（性价比）</td>
+<td>日常主力，大多数开发任务</td>
+</tr>
+<tr>
+<td><strong>Haiku</strong></td>
+<td>快/便宜</td>
+<td>简单任务、批量重复、格式化</td>
+</tr>
+</tbody></table>
+<p><strong>切换</strong>：`/model` 或 `/model <id>`，`--model` flag，`ANTHROPIC_MODEL` 环境变量。组织可设默认/限制（2026 新，管理员控制台）。</p>
+<p><strong>默认策略</strong>：日常用 <strong>Sonnet</strong>（性价比最优）；遇到难题/架构/长任务切 <strong>Opus</strong>；简单批量活用 <strong>Haiku</strong> 省成本。`/model` 随时切，不用全局锁定。</p>
+<p><strong>2026 模型生命周期</strong>（时间敏感，发文前复查 <a href="https://platform.claude.com/docs/en/about-claude/models/choosing-a-model">models 文档</a>）：Opus 4.7 GA（编码较 4.6 提升约 13%、速度逼近 Haiku），其 fast mode <strong>2026-07-24 移除</strong>（用 per-task 模型切换替代）；Sonnet 4 / Opus 4 已于 <strong>2026-06-15 退役</strong>。具体版本号滚动变化，以 `/model` 实际可选为准。</p>
+<p><strong>成本控制</strong>：`/effort` 调整推理努力；思维链 `thinking` 可 `/config thinking=false` 关（简单任务省 token）。</p>
+<pre><code>推荐                              不推荐
+日常 Sonnet                       全程 Opus（烧钱）
+难题/架构切 Opus                  难题硬用 Haiku（不够强）
+简单批量 Haiku                    简单活用 Opus（浪费）
+按任务切 /model                   全局锁一个模型
+</code></pre>
+<blockquote class="core-advice">：日常 Sonnet（性价比最优），难题/架构切 Opus，简单批量 Haiku。<strong>按任务切 `/model`，别全局锁定</strong>。模型版本滚动更新、别背号——以 `/model` 实际可选为准，定期看 <a href="https://platform.claude.com/docs/en/about-claude/models/choosing-a-model">models 文档</a>。注意 fast mode 2026-07-24 已移除，改用 per-task 切模型。</blockquote>
+<hr/>
+<h2>§22 后台任务与定时：让它自己跑</h2>
+<h3>痛点：监控部署、周期 review、长任务——你不能一直盯着</h3>
+<p>2026 的 Claude Code 能<strong>自己跑后台</strong>，你不用盯着。三种机制：</p>
+<table>
+<thead><tr>
+<th>机制</th>
+<th>干什么</th>
+<th>何时用</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>后台 bash / 后台 agent</strong></td>
+<td>长命令/长任务后台跑</td>
+<td>编译、测试套件、长任务</td>
+</tr>
+<tr>
+<td><strong>`/loop`</strong></td>
+<td>连续循环跑（最长约 3 天）</td>
+<td>持续监控、轮询</td>
+</tr>
+<tr>
+<td><strong>Scheduled Tasks（cron）</strong></td>
+<td>cron 表达式钉死时间</td>
+<td>定时（每小时/每天）</td>
+</tr>
+</tbody></table>
+<p><strong>后台 agent 的韧性</strong>（2026 新）：worker 被 daemon 重启后<strong>自动断点续跑</strong>；内存压力下自动 reap 空闲后台 shell（`CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1` 可关）。</p>
+<p><strong>典型用法</strong>：部署监控、CI/CD 检查、周期性 PR review、长任务 babysit。</p>
+<p><strong>反模式（重要）</strong>：无人值守时用 default 模式（每步问权限）→ 卡死。<strong>无人值守必须配 auto/bypass 模式 + 护栏（deny 危险操作）</strong>，否则它每步等你、你不在就停。</p>
+<pre><code>推荐                              不推荐
+长任务/监控 → 后台 + auto/bypass    无人值守用 default（卡死）
+配护栏（deny 危险操作）             裸后台不设防
+周期 review → cron                 手动每天 review
+</code></pre>
+<blockquote class="core-advice">：长任务/监控用后台 agent（2026 新增断点续跑韧性）+ `/loop`（连续）+ cron（定时）。<strong>无人值守铁律：必须配 auto/bypass 模式 + deny 护栏</strong>，否则它每步问权限、你不在就卡死。</blockquote>
+<hr/>
+<h2>§23 Git / Worktree 工作流</h2>
+<h3>痛点：多个 Claude 会话改同一仓库，互相踩</h3>
+<p>并行跑多个 Claude 会话（一个改前端、一个改后端），在同一工作目录会互相踩文件。<strong>Worktree 解决——每个会话占独立目录 + 分支，共享同一仓库历史。</strong></p>
+<p><strong>内置支持</strong>：`EnterWorktree` / `ExitWorktree`（在 `.claude/worktrees/`）。每任务一个 worktree。lock 的 `.git/worktrees/` 被 killed agent 自动清理（v2.1.187 修）。</p>
+<p><strong>commit 习惯</strong>：<strong>原子提交</strong>（一个逻辑改一个 commit），<strong>别 amend</strong>（已推的 amend 制造混乱）；CLAUDE.md 写明 git 工作流；`/code-review` 提交前过一遍。</p>
+<p><strong>PR</strong>：worktree + `gh` 天然配合——每分支直接 `gh pr create`。</p>
+<pre><code>推荐                              不推荐
+并行多会话 → 每个一个 worktree      多会话挤同一目录（踩文件）
+原子提交、别 amend                  巨型 commit / 乱 amend
+提交前 /code-review                 直接 push 不审
+每分支 gh pr create                 手动开 PR
+</code></pre>
+<blockquote class="core-advice">：并行多 Claude 会话用 worktree 隔离（每会话独立目录+分支，共享历史），避免踩文件。<strong>原子提交、别 amend、提交前 `/code-review`</strong>。worktree + `gh` 是天然的"每分支一个 PR"工作流。</blockquote>
+<hr/>
+<h1>第八部分：避坑</h1>
+<h2>§24 反模式清单：Claude Code 的坑（你大概率会踩）</h2>
+<p>每个坑附"现象→根因→推荐做法"，不是干列表。</p>
+<h3>坑 1：过度信任、不审查 ★★★</h3>
+<p><strong>现象</strong>：无人值守让它跑完一大坨，直接采纳，上线出 bug。</p>
+<p><strong>根因</strong>：Claude Code 能跑通不等于跑对——它会偷懒走捷径、编造（hallucinate）。不审查 = 把生产交给一个偶尔偷懒的实习生。</p>
+<p><strong>推荐</strong>：</p>
+<pre><code>❌ 不推荐                       ✅ 推荐
+让它跑完直接采纳               每段验收（跑测试/看 diff）
+不审就 push                    提交前 /code-review
+</code></pre>
+<p><strong>影响</strong>：上线事故、技术债堆积。来源：<a href="https://www.reddit.com/r/ClaudeAI/comments/1m6ienr/are_people_actually_getting_bad_code_from_claude/">r/ClaudeAI 讨论</a>。</p>
+<h3>坑 2：上下文爆炸（drowning it）★★★</h3>
+<p><strong>现象</strong>：长会话越跑越差、开始重复或跑偏。</p>
+<p><strong>根因</strong>：上下文接近 200K 上限，推理质量下降。它没坏，你把它淹了（§09）。</p>
+<p><strong>推荐</strong>：</p>
+<pre><code>❌ 不推荐                       ✅ 推荐
+单会话死磕到底                 70-80% 手动 /compact 或开新会话
+所有状态留对话                 状态写文件、跨会话接力
+</code></pre>
+<h3>坑 3：多任务挤一个会话 ★★★</h3>
+<p><strong>现象</strong>：一个会话里既改 bug 又加功能又重构，互相污染。</p>
+<p><strong>根因</strong>：无关任务混跑，上下文互相干扰，每个都做不好。</p>
+<p><strong>推荐</strong>：</p>
+<pre><code>❌ 不推荐                       ✅ 推荐
+多任务挤一会话                 换任务 /clear 或开新会话
+</code></pre>
+<h3>坑 4：重写重复 prompt ★★</h3>
+<p><strong>现象</strong>：同一套流程每次重新打一长串，累。</p>
+<p><strong>根因</strong>：没把重复流程沉淀成 command/skill/subagent（§13-15）。</p>
+<p><strong>推荐</strong>：重复流程写 slash command，重复领域能力写 skill，重复隔离活建固定 subagent。</p>
+<h3>坑 5：CLAUDE.md 太大太模糊 ★★</h3>
+<p><strong>现象</strong>：写了 CLAUDE.md 但它还是不听，或加载很慢。</p>
+<p><strong>根因</strong>：超过 200 行（稀释重点）、写"format code nicely"而非"use 2-space indent"（模糊到没法执行）。</p>
+<p><strong>推荐</strong>：</p>
+<pre><code>❌ 不推荐                       ✅ 推荐
+&quot;好好格式化代码&quot;               &quot;用 2 空格缩进，ruff 校验&quot;
+800 行巨无霸                   &lt; 200 行，精简聚焦
+</code></pre>
+<h3>坑 6：把 CLAUDE.md 当强制层 ★★</h3>
+<p><strong>现象</strong>：在 CLAUDE.md 写"别读 .env"，结果它还是读了。</p>
+<p><strong>根因</strong>：CLAUDE.md 是上下文引导，不是强制层（§06）。模型多数遵守但不保证 100%。</p>
+<p><strong>推荐</strong>：</p>
+<pre><code>❌ 不推荐                       ✅ 推荐
+指望 CLAUDE.md 拦危险操作       PreToolUse hook + permissions.deny（强制）
+</code></pre>
+<h3>坑 7：为 Plan Mode 能做的事建 agent ★</h3>
+<p><strong>现象</strong>：建了一堆 subagent 干"先想后做"的活，复杂度溢出。</p>
+<p><strong>根因</strong>：Plan mode 本身就能"先出方案再执行"，没必要为规划建 agent。</p>
+<p><strong>推荐</strong>：规划用 Plan mode，agent 留给"隔离重活"。</p>
+<h3>坑 8：@import 以为省 token ★★</h3>
+<p><strong>现象</strong>：用 `@import` 拆 CLAUDE.md 以为省了 context，结果还是满。</p>
+<p><strong>根因</strong>：@import 全量加载进上下文，<strong>不省 token</strong>，只组织（§06）。</p>
+<p><strong>推荐</strong>：要省 context 用 `.claude/rules/`（路径范围，按需加载），别用 @import 省token。</p>
+<h3>坑 9：不锁权限跑后台 ★★★</h3>
+<p><strong>现象</strong>：无人值守后台任务卡死，或闯祸（删了不该删的）。</p>
+<p><strong>根因</strong>：default 模式每步问权限→卡死；bypass 不设防→闯祸（§22）。</p>
+<p><strong>推荐</strong>：无人值守必须 auto/bypass + deny 护栏。</p>
+<h3>坑 10：micromanage，每步打断 ★★</h3>
+<p><strong>现象</strong>：逐行盯着、每步打断指挥，累且慢，把它当补全工具。</p>
+<p><strong>根因</strong>：还在"自己动手"心智，没给它自主空间（§01）。</p>
+<p><strong>推荐</strong>：描述终态+给空间自主跑，跑偏再纠正方向。</p>
+<h3>坑 11：并行 agent 改同一文件 ★★</h3>
+<p><strong>现象</strong>：并行 subagent 互相覆盖、冲突。</p>
+<p><strong>根因</strong>：并行铁律——只在不同文件才能并行（§13）。</p>
+<p><strong>推荐</strong>：并行前确认各 agent 改不同文件，否则串行。</p>
+<h3>坑 12：prompt 太模糊 ★★★</h3>
+<p><strong>现象</strong>："帮我优化一下"→ 它改了一堆你不要的，来回纠正。</p>
+<p><strong>根因</strong>：模糊 prompt 让它只能猜（§05）。</p>
+<p><strong>推荐</strong>：给终态+上下文+边界+验收四件套。</p>
+<blockquote class="core-advice">：坑 1（不审查）、坑 2（上下文爆）、坑 9（后台不锁权限）是"用了就出事"的硬伤，必须排。坑 5/6/8（CLAUDE.md 相关）是新手最常踩的认知坑——记住：CLAUDE.md 是引导不是强制、@import 不省 token、控制在 200 行内。<strong>所有坑的共同根因是"还在用补全工具心智"</strong>——换到"指挥 agent"心智，大半坑自动消失。</blockquote>
+<hr/>
+<h2>§25 争议与权衡（D6 争议层）</h2>
+<h3>争议 1：acceptEdits 还是 default？★★★</h3>
+<p><strong>A 方</strong>：acceptEdits 减少询问、效率高，信任它就放手。 <strong>B 方</strong>：default 每步确认更安全，防它闯祸。 <strong>判断</strong>：看你项目风险和它的可靠度。信任的常规开发 → acceptEdits；碰生产配置/危险操作 → default + deny。<strong>不是非此即彼，按任务切换</strong>。</p>
+<h3>争议 2：auto memory 该不该开？★★</h3>
+<p><strong>A 方</strong>：auto memory 让它自己记偏好/命令，省你重复教。 <strong>B 方</strong>：它可能记歪、记过时的，污染后续判断。 <strong>判断</strong>：开，但<strong>定期 `/memory` 审</strong>。收益（省重复）大于风险（只要审）。</p>
+<h3>争议 3：Opus 全开 vs Sonnet 主力？★★</h3>
+<p><strong>A 方</strong>：Opus 全开，最强质量。 <strong>B 方</strong>：Sonnet 主力省成本，难题才 Opus。 <strong>判断</strong>：Sonnet 主力。Opus 全开烧钱且大多数任务 Sonnet 够。难题/架构才值得 Opus。<strong>按任务切，别全局锁</strong>。</p>
+<blockquote class="core-advice">：这几个争议的共同解是"按情境切换、定期审"——权限按任务风险切、auto memory 开但定期审、模型按任务难度切。<strong>没有一刀切的最优，看你项目的风险和预算</strong>。</blockquote>
+<hr/>
+<h1>第九部分：实战</h1>
+<h2>§26 2026 新特性速览（你知识截止后最该补的）</h2>
+<blockquote>如果你之前用过 Claude Code，这半年（2026 H1）变化大，单列一章。源自 v2.1.181→v2.1.196 一手 changelog（<a href="https://code.claude.com/docs/en/changelog">官方 changelog</a>）。</blockquote>
+<ol><li><strong>Opus 4.7 GA + fast mode 弃用</strong>：编码较 4.6 提升约 13%、速度逼近 Haiku；fast mode <strong>2026-07-24 移除</strong>，改 per-task 切模型。来源：<a href="https://platform.claude.com/docs/en/about-claude/models/choosing-a-model">models 文档</a>。</li><li><strong>auto mode 安全收紧</strong>：默认拦破坏性 git（`git reset --hard`/`git checkout -- .`/`git clean -fd`/非本会话的 `git commit --amend`）和 `terraform/pulumi/cdk destroy`；新增 `autoMode.classifyAllShell`。</li><li><strong>组织级模型管理</strong>：管理员设默认模型/限制，`/model` 显示 "Org default"。</li><li><strong>`/rewind`</strong>：恢复 `/clear` 之前的会话（v2.1.191）。</li><li><strong>`/config key=value`</strong>：直接在 prompt 里改配置（v2.1.181）。</li><li><strong>后台 agent 韧性</strong>：daemon 重启后自动断点续跑。</li><li><strong>`sandbox.credentials`</strong>：阻止沙盒命令读凭证文件/敏感 env。</li><li><strong>MCP 安全</strong>：`claude mcp list/get` 不再启动自审批服务器；新增 `claude mcp login/logout`；5 分钟无响应的远程 MCP 自动中止。</li><li><strong>Skill frontmatter 增强</strong>：`display-name`/`default-enabled`/`fallback`/`metadata.*`。</li><li><strong>`/code-review` 与 `/review <pr>` 引擎统一</strong>：清理查找器合并，token 消耗降约 25%。</li></ol>
+<blockquote class="core-advice">：这十个里，<strong>安全相关的（auto mode 收紧、sandbox.credentials、MCP 安全）直接受益不用你动</strong>；工作流相关的（`/rewind`、`/config key=value`、后台 agent 韧性）值得马上用起来。fast mode 7/24 移除是时间敏感点——若你依赖它，改用 per-task 模型切换。</blockquote>
+<hr/>
+<h2>§27 实战项目：从零用 Claude Code 做一个 CLI 工具（教程模式）</h2>
+<blockquote>学完这个，你就把核心心智（描述需求 → 审方案 → 看它干 → 验收 → 迭代）跑通了。这是几乎所有 Claude Code 任务都通用的五步循环。</blockquote>
+<h3>项目选型</h3>
+<p>做一个<strong>命令行小工具</strong>：比如"统计当前 git 仓库每个作者的提交数"。简单、可验证、涉及它的核心能力（读文件、跑 git 命令、写代码、跑测试）。</p>
+<h3>第一步：告诉它你要什么（Describe）</h3>
+<p>直接粘贴（用 §05 的四件套）：</p>
+<pre><code>&gt; 做一个 Python CLI 工具 git-authors：在当前 git 仓库运行，
+  统计每个作者的提交数，按数量降序输出。
+  - 用 click 做 CLI（装它）
+  - 输出格式：作者名 - 提交数
+  - 配 pytest 测试（mock git 输出）
+  - 放 git-authors/ 目录，有 pyproject.toml
+  做完跑测试，给我结果。
+</code></pre>
+<p><strong>预期产出</strong>：它读环境 → 规划 → 写 `git-authors/cli.py` + `pyproject.toml` + `tests/` → 跑测试 → 给你结果。</p>
+<h3>第二步：审查方案（Review the Plan）</h3>
+<p>复杂任务它会先进 Plan mode 出方案。<strong>审它</strong>：</p>
+<ul><li>架构对吗？（CLI 入口 + 统计逻辑分离）</li><li>依赖合理吗？（click 是否必要，还是 argparse 够）</li><li>测试策略对吗？（mock git 输出 vs 真跑 git）</li></ul>
+<p>有异议直接反馈："测试别 mock，用 fixtures 建个假 git 仓库真跑。"它改方案，你批准再放手。</p>
+<p><strong>心态转变点</strong>：你的角色从"写 CLI 的人"变成"审 CLI 设计的人"。</p>
+<h3>第三步：看它干活（Watch it Work）</h3>
+<p>它开始改文件/跑命令，<strong>每步会问权限</strong>（default 模式）：</p>
+<ul><li>读文件 → 批准（只读安全）</li><li>写 cli.py → 批准（你审过方案）</li><li>装 click（`pip install`）→ 批准</li><li>跑测试 → 批准</li></ul>
+<p>信任的话切 `acceptEdits` 减少询问。<strong>看它每步在干什么</strong>，发现跑偏（比如它开始加你不想要的功能）及时打断。</p>
+<h3>第四步：验证结果（Verify）</h3>
+<p>它说做完了，<strong>别直接信，验收</strong>：</p>
+<pre><code>cd git-authors
+pip install -e .
+pytest -v                      # 测试得过？
+git-authors                    # 真跑：输出每个作者提交数？
+</code></pre>
+<p><strong>预期</strong>：测试全绿 + 真跑输出类似 `alice - 142\nbob - 87\n...`。跑对了才算完。</p>
+<h3>第五步：迭代改进（Iterate）</h3>
+<p>加功能，同样五步：</p>
+<pre><code>&gt; 加个 --since 选项，只统计某日期之后的提交。
+  配测试，跑完给我。
+</code></pre>
+<p><strong>心态转变点</strong>：迭代时你给"加什么"，它给"怎么加"——你不再关心实现细节，只关心结果对不对。</p>
+<blockquote class="core-advice">：这五步（Describe → Review → Watch → Verify → Iterate）是 Claude Code 任务通用的循环。<strong>底层心智</strong>：你管"要什么 + 对不对"，它管"怎么做"。掌握这个循环，任何任务都是它的变体——换的是领域内容，不换的是"指挥 agent"的心智。</blockquote>
+<hr/>
+<h1>附录 A：检查清单（Checklist）</h1>
+<blockquote>上手/排障时对照勾选。每项可验证。</blockquote>
+<h3>A.1 心智与 prompt 检查项</h3>
+<ul><li>[ ] 任务给了终态（做成什么样），不只是步骤</li><li>[ ] prompt 含上下文（相关文件/技术栈）</li><li>[ ] prompt 含边界（什么别碰）</li><li>[ ] prompt 含验收标准（怎么算做对）</li><li>[ ] 复杂任务先 Plan Mode 出方案再执行</li><li>[ ] 给了它自主空间，没逐行 micromanage</li><li>[ ] 产出验收了（跑测试/看 diff），没直接采纳</li></ul>
+<h3>A.2 配置与记忆检查项</h3>
+<ul><li>[ ] 有项目级 CLAUDE.md（构建/测试命令 + 约定 + 禁区）</li><li>[ ] CLAUDE.md < 200 行，具体可执行（"2 空格缩进"非"好好格式化"）</li><li>[ ] 团队规矩在 ./CLAUDE.md（进 git），个人偏好在 CLAUDE.local.md</li><li>[ ] 局部规则在 .claude/rules/（带 paths），不在 CLAUDE.md</li><li>[ ] 知道 @import 不省 token（只组织）</li><li>[ ] 知道 CLAUDE.md 是引导非强制（硬拦用 hook）</li><li>[ ] 定期 /memory 审 auto memory</li></ul>
+<h3>A.3 上下文管理检查项</h3>
+<ul><li>[ ] 定期 /context 看用量</li><li>[ ] 超 70% 主动 /compact 或开新会话</li><li>[ ] 长任务状态写文件、跨会话接力</li><li>[ ] 换任务 /clear，不一任务挤一会话</li><li>[ ] 长会话定期重申目标 + 重读锚文件</li></ul>
+<h3>A.4 扩展机制检查项</h3>
+<ul><li>[ ] 重复流程 → slash command（不重打）</li><li>[ ] 重复领域能力 → skill（它自主调）</li><li>[ ] 隔离重活 → subagent（主线不污染）</li><li>[ ] 自动化/强制 → hook（不靠 CLAUDE.md）</li><li>[ ] 接外部系统 → MCP（原生干不了才上）</li><li>[ ] 并行 subagent 改不同文件（无冲突）</li></ul>
+<h3>A.5 安全检查项</h3>
+<ul><li>[ ] 危险操作在 permissions.deny（强制层）</li><li>[ ] PreToolUse hook 拦密钥/.env</li><li>[ ] sandbox.credentials 开（拦凭证）</li><li>[ ] 无人值守配 auto/bypass + 护栏（不裸 default）</li><li>[ ] 不用 root/sudo 跑 bypassPermissions</li><li>[ ] 提交前 /code-review</li></ul>
+<hr/>
+<h1>附录 B：配置文件速查</h1>
+<h3>B.1 关键文件位置</h3>
+<table>
+<thead><tr>
+<th>文件</th>
+<th>作用</th>
+<th>谁掌控</th>
+</tr></thead><tbody>
+<tr>
+<td>`./CLAUDE.md`</td>
+<td>项目规矩（进 git）</td>
+<td>团队</td>
+</tr>
+<tr>
+<td>`./CLAUDE.local.md`</td>
+<td>本机规矩（进 .gitignore）</td>
+<td>个人</td>
+</tr>
+<tr>
+<td>`~/.claude/CLAUDE.md`</td>
+<td>全局规矩</td>
+<td>个人</td>
+</tr>
+<tr>
+<td>`.claude/settings.json`</td>
+<td>权限/hooks/默认模式</td>
+<td>配置</td>
+</tr>
+<tr>
+<td>`.claude/commands/*.md`</td>
+<td>自定义 slash command</td>
+<td>你</td>
+</tr>
+<tr>
+<td>`.claude/skills/*/SKILL.md`</td>
+<td>技能</td>
+<td>你</td>
+</tr>
+<tr>
+<td>`.claude/agents/*.md`</td>
+<td>自定义 subagent</td>
+<td>你</td>
+</tr>
+<tr>
+<td>`.claude/rules/*.md`</td>
+<td>路径范围规则（带 paths）</td>
+<td>你</td>
+</tr>
+<tr>
+<td>`.mcp.json`</td>
+<td>MCP server 配置（进 git）</td>
+<td>项目</td>
+</tr>
+<tr>
+<td>`~/.claude/projects/<project>/memory/`</td>
+<td>auto memory</td>
+<td>Claude</td>
+</tr>
+</tbody></table>
+<h3>B.2 settings.json 最小示例</h3>
+<pre><code>{
+  &quot;defaultMode&quot;: &quot;acceptEdits&quot;,
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [&quot;Read&quot;, &quot;Edit&quot;, &quot;Bash(git:*)&quot;, &quot;Bash(pytest:*)&quot;],
+    &quot;deny&quot;: [&quot;Bash(rm -rf:*)&quot;, &quot;Read(./.env)&quot;, &quot;Read(./.env.*)&quot;]
+  },
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [{
+      &quot;matcher&quot;: &quot;Edit|Write&quot;,
+      &quot;hooks&quot;: [{ &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;echo &#x27;edited&#x27;&quot; }]
+    }]
+  }
+}
+</code></pre>
+<h3>B.3 关键命令速查</h3>
+<table>
+<thead><tr>
+<th>命令</th>
+<th>作用</th>
+</tr></thead><tbody>
+<tr>
+<td>`/context`</td>
+<td>看 token 用量</td>
+</tr>
+<tr>
+<td>`/compact`</td>
+<td>压缩上下文继续同任务</td>
+</tr>
+<tr>
+<td>`/clear`</td>
+<td>清空换任务</td>
+</tr>
+<tr>
+<td>`/resume`</td>
+<td>恢复历史会话</td>
+</tr>
+<tr>
+<td>`/rewind`</td>
+<td>恢复 /clear 之前（2026 新）</td>
+</tr>
+<tr>
+<td>`/model`</td>
+<td>切模型</td>
+</tr>
+<tr>
+<td>`/memory`</td>
+<td>管记忆</td>
+</tr>
+<tr>
+<td>`/permissions`</td>
+<td>查权限规则</td>
+</tr>
+<tr>
+<td>`/plan`</td>
+<td>进 Plan mode（或 Shift+Tab×2）</td>
+</tr>
+<tr>
+<td>`/code-review`</td>
+<td>审当前 diff</td>
+</tr>
+<tr>
+<td>`/loop`</td>
+<td>连续循环跑</td>
+</tr>
+<tr>
+<td>`claude --resume <name>`</td>
+<td>恢复指定会话</td>
+</tr>
+<tr>
+<td>`claude --continue`</td>
+<td>继续上次会话</td>
+</tr>
+</tbody></table>
+<hr/>
+<h1>附录 C：完整骨架（最小可上手 .claude/ 配置）</h1>
+<blockquote>门禁6（可运行性）依据——这套配置 `cp` 到任何项目即可用。</blockquote>
+<h3>C.1 目录结构</h3>
+<pre><code>your-project/
+├── CLAUDE.md                    # 项目规矩
+├── .claude/
+│   ├── settings.json            # 权限 + hooks
+│   ├── commands/
+│   │   └── test.md              # 一个自定义命令示范
+│   ├── skills/
+│   │   └── (按需)
+│   └── rules/
+│       └── (按需，带 paths)
+└── .mcp.json                    # (可选) MCP server
+</code></pre>
+<h3>C.2 CLAUDE.md（精简模板）</h3>
+<pre><code># CLAUDE.md
+
+## 构建/测试
+- 装：`pnpm install`
+- 跑：`pnpm dev`
+- 测：`pnpm test`（改完代码必须跑）
+
+## 约定
+- 包管理用 pnpm，禁止 npm/yarn
+- 提交前 `pnpm lint`
+- 组件放 src/components/
+
+## 禁区
+- 不改 src/config/production.ts
+- 不加新依赖，先讨论
+</code></pre>
+<h3>C.3 .claude/settings.json</h3>
+<pre><code>{
+  &quot;defaultMode&quot;: &quot;acceptEdits&quot;,
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [&quot;Read&quot;, &quot;Edit&quot;, &quot;Bash(pnpm:*)&quot;, &quot;Bash(git:*)&quot;],
+    &quot;deny&quot;: [&quot;Bash(rm -rf:*)&quot;, &quot;Read(./.env)&quot;]
+  },
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [{
+      &quot;matcher&quot;: &quot;Edit|Write&quot;,
+      &quot;hooks&quot;: [{ &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;pnpm lint --fix&quot; }]
+    }]
+  }
+}
+</code></pre>
+<h3>C.4 .claude/commands/test.md（自定义命令示范）</h3>
+<pre><code>---
+description: 跑测试 + 给结果
+allowed-tools: Bash
+---
+跑 `pnpm test`，如有失败：分析失败原因，改代码修复，再跑直到全绿。给我最终结果和改了哪些文件。
+</code></pre>
+<h3>C.5 验证（启动 + 用）</h3>
+<pre><code>cd your-project
+claude
+# 进去后试：
+&gt; /test                  # 触发自定义命令
+&gt; /context               # 看用量
+&gt; 帮我看看 src/ 下有什么，给个结构总结   # 试一个真实小活
+</code></pre>
+<hr/>
+<h1>附录 D：参考资源（已逐条核实可访问）</h1>
+<p><strong>官方文档（一手）</strong></p>
+<ul><li><a href="https://code.claude.com/docs/en">Claude Code 官方文档站</a> — 入口</li><li><a href="https://code.claude.com/docs/en/memory">Memory（CLAUDE.md/auto memory）</a> — 记忆系统（@import/层级/context非强制，逐字核实）</li><li><a href="https://code.claude.com/docs/en/sessions">Sessions（/compact /clear /resume）</a></li><li><a href="https://code.claude.com/docs/en/context-window">Context Window（/context）</a></li><li><a href="https://code.claude.com/docs/en/subagents">Subagents</a></li><li><a href="https://code.claude.com/docs/en/hooks">Hooks</a> — 事件/退出码/matcher</li><li><a href="https://code.claude.com/docs/en/permissions">Permissions / Permission modes</a> · <a href="https://code.claude.com/docs/en/permission-modes">modes</a></li><li><a href="https://code.claude.com/docs/en/skills">Skills</a></li><li><a href="https://code.claude.com/docs/en/agent-sdk/slash-commands">Slash commands</a></li><li><a href="https://code.claude.com/docs/en/mcp">MCP</a></li><li><a href="https://code.claude.com/docs/en/worktrees">Worktrees</a></li><li><a href="https://code.claude.com/docs/en/scheduled-tasks">Scheduled tasks（/loop/cron）</a></li><li><a href="https://code.claude.com/docs/en/vs-code">VS Code 集成</a></li><li><a href="https://code.claude.com/docs/en/common-workflows">Common workflows</a></li><li><a href="https://code.claude.com/docs/en/changelog">Changelog</a> — 版本/新特性一手</li></ul>
+<p><strong>官方公告/工程博客</strong></p>
+<ul><li><a href="https://www.anthropic.com/engineering">Anthropic Engineering</a> — "Claude Code: Best practices for agentic coding"（旗舰 best practices，2025-04，需用 changelog 补 2026 增量）</li><li><a href="https://www.anthropic.com/news/claude-opus-4-7">anthropic.com/news/claude-opus-4-7</a></li><li><a href="https://platform.claude.com/docs/en/about-claude/models/choosing-a-model">models 选择文档</a> — fast mode 弃用</li></ul>
+<p><strong>仓库</strong></p>
+<ul><li><a href="https://github.com/anthropics/claude-code">github.com/anthropics/claude-code</a> — star/issue</li><li><a href="https://github.com/anthropics/claude-code/releases">github.com/anthropics/claude-code/releases</a> — 版本一手</li></ul>
+<p><strong>社区最佳实践</strong></p>
+<ul><li><a href="https://github.com/wshobson/commands">wshobson/commands</a> — 57 个 slash command 范例</li><li><a href="https://www.morphllm.com/claude-code-hooks">MorphLLM 30 hook 示例</a></li><li><a href="https://mikhail.io/2025/10/claude-code-skills/">mikhail.io: Skills 结构</a></li><li><a href="https://incident.io/blog/shipping-faster-with-claude-code-and-git-worktrees">incident.io: worktrees 实战</a></li></ul>
+<p><strong>社区反模式/讨论</strong></p>
+<ul><li><a href="https://aiforsystems.substack.com/p/the-anti-patterns-i-see-claude-code">aiforsystems: Claude Code 反模式</a></li><li><a href="https://institute.sfeir.com/en/claude-code/claude-code-advanced-best-practices/errors/">SFEIR: 10 常见错误</a></li><li><a href="https://medium.com/@nuno.roberto/claude-code-is-not-broken-you-are-drowning-it-7d7635765c10">Medium: you are drowning it</a></li><li><a href="https://www.reddit.com/r/ClaudeAI/comments/1m6ienr/are_people_actually_getting_bad_code_from_claude/">r/ClaudeAI: 产出的代码质量</a></li><li><a href="https://lucumr.pocoo.org/2025/12/17/what-is-plan-mode/">Armin Ronacher: What is plan mode</a></li></ul>
+<hr/>
+<blockquote><strong>Claude Code 的具体命令和特性会变（它几乎每天滚动更新），但"指挥 agent"这个心智不会变</strong>。学会描述终态、把约束写进它能读的文件、审它的方案、设计让它稳定的循环、给它空间自主跑——这些能力，在 agent 时代会越来越值钱。盯紧 §26 的 2026 新特性，把过时做法（fast mode、老权限模式）从工作流里清掉，你就走在了正确的方向上。</blockquote>
+<hr/>
+<h2>更新日志</h2>
+<table>
+<thead><tr>
+<th>日期</th>
+<th>版本</th>
+<th>变更</th>
+<th>来源</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-01</td>
+<td>1.0.0</td>
+<td>首次生成（橙皮书风格 + 教程模式）。版本 v2.1.x（最新 v2.1.196，滚动）；覆盖心智转变/CLAUDE.md/上下文/扩展机制(skill+command+subagent+hook+MCP)/权限安全/模型/后台/Git/12 反模式/2026 新特性/实战；量化带来源与未核实标注</td>
+<td>code.claude.com 官方文档 + GitHub Releases + Anthropic Engineering + 社区最佳实践</td>
+</tr>
+</tbody></table>
+</div>
+<script>mermaid.initialize({startOnLoad:true, theme:'neutral'});</script>
+</body>
+</html>
