@@ -231,7 +231,7 @@ orchestrate 指令卡的「完成后你必须做」段必须**逐字列出当前
 ## cc-2pp 衔接（N3.6 架构设计节点 + 变更回溯 + 视角组 + 自动调，2026-06-29）
 
 cc-2pp 与 pipeline 两种衔接：
-1. **N3.6 架构设计节点**（2026-06-29 插）：N3.5 需求 PRD → **N3.6 架构设计（cc-2pp 激活，产 55-architecture.md：系统架构图/模块/接口契约/数据模型/部署/选型定稿）** → N4 原型。cc-2pp 作节点激活，强制产出架构设计文档（web2 教训：选型止步、跳架构设计致粗糙）。exit_condition 查六块关键词。
+1. **N3.6 架构设计节点**（2026-06-29 插）：N3.5 需求 PRD → **N3.6 架构设计（cc-2pp 激活，产 55-architecture.md：系统架构图/模块/接口契约/数据模型/部署/选型定稿）** → N4 原型。cc-2pp 作节点激活，强制产出架构设计文档（web2 教训：选型止步、跳架构设计致粗糙）。exit_condition 查六块关键词。★ **视角强制注入（2026-07-02 坦克大战教训）**：N3.6 调 cc-2pp 时，**按项目类型强制注入视角**——前端/含可视化项目必含 `perspective-ui`（UIUX：用户体验/可访问性/设计一致性/响应式/加载性能），避免"技术正确但体验差"（坦克大战 cc-2pp 没注入 UIUX → 可视化粗糙）。cc-2pp 视角库 owns perspective-ui，pipeline N3.6 调时**强制指定**（不只靠 cc-2pp 自判场景——cc-2pp 执行时偏技术/架构视角，漏 UX）。
 2. **切面**（重大决策自动调）：大变更走视角组探索 → 调 cc-2pp 重做。
 
 ### 变更检测 + 分级（M2）
@@ -287,7 +287,7 @@ node monitor.js --run <run-dir> [--since <commit>] [--root <dir>] [--stagnation-
   → 调 cc-2pp Phase 0（探索产出作 00-explore 输入）
   → cc-2pp 跑 Phase 2/4 → 新 50/60/70 → pipeline 消费（exit_condition）
 ```
-★ 视角组仅大变更 spawn（按需）；视角库 cc-2pp owns，pipeline 复用。
+★ 视角组 spawn 时机（2026-07-02 修正）：① 大变更（按需）② **N3.6 架构设计也跑一次视角组**（含 UIUX，前端项目强制）——不只 N7 打磨/切面回溯，**早期决策（N3.6）就 parallel 视角覆盖**，防"决策阶段漏 UX"（坦克大战 N3.6 没 UIUX 视角 → 可视化粗糙返工）。视角库 cc-2pp owns，pipeline 复用。
 
 ### 重大决策自动调 cc-2pp（M4）
 pipeline 节点遇重大决策（score_2pp≥5 或节点显式标记 `auto_2pp: true`）→ 自动触发 cc-2pp（双入口之一）。cc-2pp 产新 plan → pipeline 消费（exit_condition）→ 流转。
