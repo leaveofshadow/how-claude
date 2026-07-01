@@ -84,7 +84,7 @@ description: >
 
 1. 读 manifest → skills 列表（无 manifest → 提示"未装"）
 2. **逐个删软链**：
-   - Win junction：`Remove-Item <目标>/.claude/skills/<name>`（junction 勿用 `rm -rf`，会伤 clone）
+   - Win junction：`cmd /c rmdir "<目标>/.claude/skills/<name>"`（**勿** `Remove-Item`/`rm -rf`——NonInteractive 确认失败 / 穿越删 clone）
    - Unix：`rm <目标>/.claude/skills/<name>`（只删软链不删 clone 内容）
    - 删 contracts 软链（若装了）
 3. `--purge`：额外删 `~/.claude/how-claude/` clone（⚠️ **确认**——影响所有项目）
@@ -137,7 +137,7 @@ how-claude 套件自管理（hcc-cli）
 |---|---|---|
 | 判平台 | `$env:OS -eq "Windows_NT"` | `uname -s` |
 | 目录软链 | `New-Item -ItemType Junction -Path <dst> -Target <src>` | `ln -s <src> <dst>` |
-| 删软链 | `Remove-Item <dst>`（junction） | `rm <dst>` |
+| 删软链 | `cmd /c rmdir "<dst>"`（junction，NonInteractive 安全）| `rm <dst>` |
 | clone 存在 | `Test-Path <path>/.git` | `[ -d <path>/.git ]` |
 | 软链目标 | `Get-Item <dst> \| Select-Object -ExpandProperty Target` | `readlink <dst>` |
 

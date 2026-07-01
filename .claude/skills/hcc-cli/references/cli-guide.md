@@ -67,7 +67,7 @@
 - 命令：`New-Item -ItemType Junction -Path <dst> -Target <src>`
 - **不需管理员**（junction 是 NTFS 重解析点；symlink 才需管理员/开发者模式）
 - 可跨卷；仅本地目录
-- **删**：`Remove-Item <dst>`——**勿** `rm -rf <dst>`（会穿越 junction 删 target 内容！）
+- **删**：`cmd /c rmdir "<dst>"`——最可靠（`Remove-Item` 在 NonInteractive 模式会确认失败；`rm -rf` 会穿越 junction 删 target 内容！）；替代 `[System.IO.Directory]::Delete("<dst>")`
 - 替代：`cmd /c mklink /J <dst> <src>`（同样不需管理员）
 
 ### Windows · symlink（避免）
