@@ -40,7 +40,7 @@ description: >
 1. **能力边界重塑** → 设计时不问"人能不能做"，问"Claude+哪些 skills 能做"。缺能力 → 先找/造 skill（联动 cc-scanner），而非评估团队学习成本。
 2. **内容=生成** → 实施成本是 token/上下文/验证，不是"人天"。token 可度量（仍用于实施成本估算，口径见 `org-claude.md`[`#measure`]），但 token ROI 不好估（见假设5 / [`#token-roi`]），方案决策改用三项好估维度（功能需求/技术选项/运维成本）。
 3. **交接界面读者是 Claude** → Plan/锚文件按"Claude 好读、好执行、好自验证"设计。这解释了 cc-config 锚文件体系（VISION/CLAUDE/AGENTS/PROMPT）为何是地基。
-4. **skills 可装载** → cc-scanner 扫描可用 skills = 扫描 Claude 当前的"实施能力清单"。2pp 方案应把"需要哪些 skills"列为产出之一。
+4. **skills 可装载** → cc-scanner 扫描可用 skills = 扫描 Claude 当前的"实施能力清单"。**Phase 0a 必调 cc-scanner** 产能力清单（非可选——这是本推论的执行落地），60「所需 skills 清单」消费该清单。2pp 方案必须把"需要哪些 skills"列为产出之一（基于本地能力清单，非编造）。
 
 ### 假设 2：Claude 实施者有系统性缺陷，2pp 每个机制都是对策
 
@@ -469,7 +469,9 @@ retry 规则:
   - 输出：实测 vs 理论 对照表 PASS/FAIL；FAIL → 回 cc-2pp Phase 2 重选
 ## 模块拆分（工作量按 Claude 实施者度量: token/轮次/skill配置/验证，禁人天）
 ## 里程碑（每阶段交付物 + 验收条件 + Claude 实施者工作量）
-## 所需 skills 清单（假设1推论4，消费 Phase 0 能力清单——每个 skill 必须标"在哪步用"，不可只列名字）
+## 所需 skills 清单（假设1推论4，★基于 Phase 0a cc-scanner 能力清单——每个 skill 必须标"在哪步用"，不可只列名字）
+  ★编排者校验: 清单基于 00-explore.md §能力清单（cc-scanner 扫到的**本地已装技能**，不编造不存在的 skill）；按里程碑/阶段（执行/审查/调试/验证）推荐，条数与里程碑匹配；空 / 只 1-2 个 / 未标"在哪步用" → retry
+  > 注：code-review 是**必做质量门**（见执行协议「里程碑审查」），不走 cc-scanner 推荐——强制，不因本地环境省略；其他技能按 cc-scanner 推荐。
 ## 执行编排（Claude 怎么干——实施者落地核心；缺此节=计划不可执行，必须补）
   ### 智能体配置（按里程碑）: 表格列 |里程碑|agent数|类型(创造类general-purpose/探索类Explore)|并行/串行|理由|
      规则: 有依赖→串行；独立文件→创造类并行；审计复用→探索类只读
@@ -483,6 +485,9 @@ retry 规则:
   ### 验证闸（每个小步骤完成后）: 表格列 |步骤|验证命令/手段|通过判据(可证伪)|失败动作|
   ### 提交/回滚（git 自动化，不问用户）: 通过闸→编排者**自动** conventional commit（一步一commit）；失败→git restore回滚该步重做（不污染历史）；里程碑全闸过→打 tag。
      ★ git 规范自动化（用户授权）：commit 本身编排者自动执行，不 ask user（commit≠merge）；**仅** merge/PR/push/reset --hard 等不可逆操作才确认。每里程碑同步 TaskUpdate（pending→completed）。**禁止攒多里程碑后批量问「commit 吗」**——过闸即提交。
+  ### 里程碑审查（code-review ★必做质量门——闭环质量，非可选；用户决策固化）
+     规则: 里程碑验收闸全过 + commit/tag 后 → **必调 code-review skill 审该里程碑 diff**（功能 bug + 简化 + 复用）；关键里程碑（架构/安全/数据相关）加 security-review；审查 find 必修（fix 后 re-review 通过）才进下一里程碑。
+     ★ code-review 强制（不走 cc-scanner 推荐，不因本地环境省略）；code-review skill 未装 → 内置 `/code-review` 或 OMC code-reviewer agent 兜底，**不可跳过**。其他技能（superpowers/executing-plans/TDD/调试等）按 Phase 0a cc-scanner 能力清单推荐（非强制）。
 ## 风险清单
 ## 下一步行动
 ```
@@ -517,12 +522,16 @@ retry 规则:
 Phase 0: Explore（必做，不可跳过——假设1/2/原则1）
     │
     ├─ Step 0a: 内部探索（探索类 → 只读返回，编排者落盘）
-    │  工具: Agent (subagent_type: "Explore", model: "haiku")
+    │  工具: Agent (subagent_type: "Explore", model: "haiku") + ★编排者调 cc-scanner（假设1推论4 落地）
     │  → Explore 只读扫描：代码库、CLAUDE.md、memory、已安装技能（含 how-cc 套件）
     │  → Explore【返回】结构化信息：关键文件 + 现有架构约束 + 已有决策
-    │  → 编排者把返回结果落盘到 .hcc/decisions/{run}/00-explore.md
+    │  ★编排者调 cc-scanner 扫描全 6 源（个人/项目/官方/CLI/OMC/自定义，失败静默跳过）
+    │    → 产/读 `.claude/skills-kb.json` → 按本任务阶段（执行/审查/调试/验证）匹配可用技能
+    │    → 产出"本地能力清单"（技能名 + 能力 + 触发场景 + 建议用在 cc-2pp 哪步）
+    │    ⚠️ cc-scanner 未装/失败 → 降级（Explore 扫的 how-cc 套件兜底，00-explore 标"本地技能环境未全扫，60 推荐可能不全"），不阻塞
+    │  → 编排者把 Explore 返回 + 能力清单落盘到 .hcc/decisions/{run}/00-explore.md（含 §能力清单）
     │  ⚠️ Explore 无 Write 权限，不可让它写文件；落盘由编排者完成
-    │  Retry: Explore 返回为空/无效 → 重试（仍用 Explore）
+    │  Retry: Explore 返回为空/无效 → 重试（仍用 Explore）；cc-scanner 失败不阻塞（降级）
     │
     ├─ Step 0b: 外部探索（技术选型的外部校正——假设3）
     │  工具: WebSearch / WebFetch

@@ -631,9 +631,11 @@ Step 4: 通知
 | M0: Smoke | [交付物] | [命令+期望] | [X会话] |
 | M1: 核心 | [交付物] | [条件] | [X会话] |
 
-## 4. 所需 skills 清单（假设1推论4，消费 Phase 0 能力清单）
-| skill | 来源(Phase0能力清单) | 用在哪一步 |
+## 4. 所需 skills 清单（假设1推论4，★基于 Phase 0a cc-scanner 能力清单）
+| skill | 来源(00-explore.md §能力清单) | 用在哪一步 |
 |------|------|-----------|
+★编排者校验: 基于 cc-scanner 扫到的**本地已装技能**（不编造）；按里程碑/阶段（执行/审查/调试/验证）推荐，条数与里程碑匹配；空 / 只 1-2 个 → retry
+> code-review 是**必做质量门**（见 §6 里程碑审查），不走推荐；其他技能按 cc-scanner 推荐。
 
 ## 5. 执行编排（怎么干——缺则不可执行）
 | 智能体配置: 里程碑→agent数/类型(创造类general-purpose·探索类Explore)/并行或串行/理由 |
@@ -641,9 +643,10 @@ Step 4: 通知
 | 执行模式+分步: 里程碑→/goal一次性 or /loop多步/步数/每步边界(每步≈一个会话) |
 | worktree并发分配: |里程碑/任务|进worktree?|槽位|分支名|依据(依赖)|；槽位≤2可排队（非创建配额）；操作见 cc-loop Stage4 SOP |
 
-## 6. 执行协议（每步验证闸 + 提交/回滚——缺则开环不可信）
+## 6. 执行协议（每步验证闸 + 提交/回滚 + ★里程碑审查——缺则开环不可信）
 | 验证闸: 步骤→验证命令/可证伪判据/失败动作 |
 | 提交/回滚: 闸过→conventional commit(一步一commit)；失败→git restore回滚重做；里程碑全过→打tag；标注人工确认点 |
+| ★里程碑审查(code-review **必做**): 里程碑验收+commit后→必调 code-review skill 审 diff(功能bug+简化+复用)；关键里程碑(架构/安全/数据)加 security-review；find必修(re-review通过)才进下一里程碑。code-review 强制不走 cc-scanner 推荐，未装→内置`/code-review`或 OMC code-reviewer agent 兜底，**不可跳过**；其他技能按 cc-scanner 推荐(非强制) |
 
 ## 7. 风险清单
 | 风险 | 可能性 | 影响 | 缓解策略 |
