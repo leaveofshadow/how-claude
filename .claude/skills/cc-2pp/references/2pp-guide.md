@@ -82,7 +82,7 @@ web 搜索预算（护栏）: 最多 15 轮
 
 ```
 工作流:
-  agent 独立思考 → 完整产出写到 .2pp/{run}/ 文件（不靠返回值）
+  agent 独立思考 → 完整产出写到 .hcc/decisions/{run}/ 文件（不靠返回值）
   编排者         → 读多个 agent 的文件 → 做全文综合判断（不是拼接）
 ```
 
@@ -96,7 +96,7 @@ web 搜索预算（护栏）: 最多 15 轮
 ### 五、文件存储设计
 
 ```
-{当前项目根}/.2pp/                        ← 默认在 cwd，gitignore
+{当前项目根}/.hcc/decisions/                        ← 默认在 cwd，gitignore
 └── {YYYY-MM-DD}-{slug}/                  ← 一次运行一个目录
     ├── 00-explore.md                     ← Phase 0 探索
     ├── 10-plan-main.md                   ← Phase 2 模式A 主力方案
@@ -384,7 +384,7 @@ Step 4b: 展示实施计划
   → 立即可执行的第一步（对应 70 的 R0.1）
 
 Step 4c: 持久化
-  → 与决策记录同目录（.2pp/{run}/）
+  → 与决策记录同目录（.hcc/decisions/{run}/）
   → 文件名: 60-impl-plan.md + 70-requirements.md
   → 可直接衔接 cc-loop
 ```
@@ -526,7 +526,7 @@ Step 4: 通知
 ### 默认保存位置
 
 ```
-{当前项目根}/.2pp/{YYYY-MM-DD}-{slug}/
+{当前项目根}/.hcc/decisions/{YYYY-MM-DD}-{slug}/
   └── 运行时即产出 50-decision.md + 60-impl-plan.md（见文件存储设计）
 ```
 

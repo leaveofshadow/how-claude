@@ -66,6 +66,6 @@ version: v1（2026-06-24）
 
 ## 输出
 
-写 `.2pp/{run}/20-attack-{A,B,C}.md`，必需章节：
+写 `.hcc/decisions/{run}/20-attack-{A,B,C}.md`，必需章节：
 - **攻击点列表**：每点含 `[ID] 标题 / 严重度(CRITICAL|MAJOR|MINOR) / 证据(引方案原文) / 影响 / 修复建议`（至少 3 点）
 - **总结**：方案能否存活 + 理由（综合判断）
